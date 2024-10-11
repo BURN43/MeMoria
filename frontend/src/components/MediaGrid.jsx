@@ -172,7 +172,7 @@ const MediaGrid = ({
   // Sort media from newest to oldest
   const sortedMedia = useMemo(() => {
     return [...media].sort((a, b) => {
-      return new Date(b.uploadedAt) - new Date(a.uploadedAt);
+      return new Date(b.uploadedAt || b.createdAt).getTime() - new Date(a.uploadedAt || a.createdAt).getTime();
     });
   }, [media]);
 
@@ -268,8 +268,6 @@ const MediaGrid = ({
           </button>
         )}
       </div>
-
-
     </div>
   );
 };

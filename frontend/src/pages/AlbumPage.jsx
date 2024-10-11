@@ -37,11 +37,10 @@ const ProfilePicture = React.memo(({ isAdmin, userId, guestAlbumToken }) => {
       setProfilePic(cachedUrl);
       return;
     }
-
     try {
       const response = await axios.get(`${API_URL}/profile-picture/profile`, {
         params: guestAlbumToken ? { token: guestAlbumToken } : {},
-        withCredentials: true
+        withCredentials: true,
       });
       setProfilePic(response.data.profilePicUrl);
       localStorage.setItem('profilePicUrl', response.data.profilePicUrl);
@@ -62,14 +61,12 @@ const ProfilePicture = React.memo(({ isAdmin, userId, guestAlbumToken }) => {
 
     setLoading(true);
     setError(null);
-
     const formData = new FormData();
     formData.append('profilePic', file);
-
     try {
       const response = await axios.post(`${API_URL}/profile-picture/profile`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
-        withCredentials: true
+        withCredentials: true,
       });
       setProfilePic(response.data.profilePicUrl);
       localStorage.setItem('profilePicUrl', response.data.profilePicUrl);
@@ -90,20 +87,11 @@ const ProfilePicture = React.memo(({ isAdmin, userId, guestAlbumToken }) => {
         </div>
       ) : profilePic ? (
         <div className="relative">
-          <img
-            src={profilePic}
-            className="w-40 h-40 rounded-full object-cover object-center border-4 border-white shadow-lg"
-            alt="Profile"
-          />
+          <img src={profilePic} className="w-40 h-40 rounded-full object-cover object-center border-4 border-white shadow-lg" alt="Profile" />
           {isAdmin && (
             <div className="absolute inset-0 flex items-center justify-center bg-purple-200 bg-opacity-75 rounded-full opacity-0 hover:opacity-100 transition-opacity duration-300">
               <span className="text-purple-600 text-sm">Change Profile Picture</span>
-              <input
-                type="file"
-                accept="image/*"
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                onChange={handleUpload}
-              />
+              <input type="file" accept="image/*" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onChange={handleUpload} />
             </div>
           )}
         </div>
@@ -111,21 +99,12 @@ const ProfilePicture = React.memo(({ isAdmin, userId, guestAlbumToken }) => {
         <div>
           {isAdmin ? (
             <label className="relative flex flex-col items-center justify-center w-full cursor-pointer aspect-square bg-purple-200 rounded-full border-2 border-dashed border-purple-600">
-              <input
-                type="file"
-                accept="image/*"
-                className="absolute z-10 w-full h-full opacity-0 cursor-pointer"
-                onChange={handleUpload}
-              />
+              <input type="file" accept="image/*" className="absolute z-10 w-full h-full opacity-0 cursor-pointer" onChange={handleUpload} />
               <FaPlus className="text-3xl text-purple-600" />
               <div className="mt-1 text-xs text-purple-600">Add Profile Picture</div>
             </label>
           ) : (
-            <img
-              src="/default-profile.png"
-              className="w-40 h-40 rounded-full object-cover object-center border-4 border-white shadow-lg"
-              alt="Default Profile"
-            />
+            <img src="/default-profile.png" className="w-40 h-40 rounded-full object-cover object-center border-4 border-white shadow-lg" alt="Default Profile" />
           )}
         </div>
       )}
@@ -191,7 +170,6 @@ const AlbumPage = () => {
     try {
       setLoadingSettings(true);
       let currentAlbumId, queryParam, headers;
-
       if (isAuthenticated && user) {
         currentAlbumId = user.albumId;
         headers = { Authorization: `Bearer ${user.token}` };
@@ -201,21 +179,17 @@ const AlbumPage = () => {
       } else {
         throw new Error('No valid authentication method available');
       }
-
       if (!currentAlbumId) {
         throw new Error('Unable to determine album ID');
       }
-
       const cachedData = localStorage.getItem('albumData');
       const cachedTimestamp = localStorage.getItem('albumDataTimestamp');
       const now = Date.now();
-
-      if (cachedData && cachedTimestamp && now - parseInt(cachedTimestamp) < 300000) {
+      if (cachedData && cachedTimestamp && now - parseInt(cachedTimestamp) < 60000) {
         setAlbumData(JSON.parse(cachedData));
         setLoadingSettings(false);
         return;
       }
-
       const [mediaResponse, settingsResponse] = await Promise.all([
         axios.get(`${API_URL}/album-media/media/${currentAlbumId}${queryParam || ''}`, {
           headers,
@@ -226,10 +200,14 @@ const AlbumPage = () => {
           withCredentials: true,
         })
       ]);
-
-      const sortedMedia = (mediaResponse.data.media || []).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      const sortedMedia = (mediaResponse.data.media || [])
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .map(item => ({
+          ...item,
+          challengeTitle: item.challengeTitle || '',
+          uploaderUsername: item.uploaderUsername || ''
+        }));
       const settingsData = settingsResponse.data;
-
       const newAlbumData = {
         title: settingsData.albumTitle || 'Album',
         greetingText: settingsData.greetingText || 'Welcome to the album!',
@@ -237,7 +215,6 @@ const AlbumPage = () => {
         guestUploadsImage: settingsData.GuestUploadsImage || false,
         guestUploadsVideo: settingsData.GuestUploadsVideo || false,
       };
-
       setAlbumData(newAlbumData);
       localStorage.setItem('albumData', JSON.stringify(newAlbumData));
       localStorage.setItem('albumDataTimestamp', now.toString());
@@ -266,16 +243,13 @@ const AlbumPage = () => {
     if (isUploading) return;
     setIsUploading(true);
     setUploadProgress(0);
-
     const formData = new FormData();
     formData.append('mediaFile', file);
     setLoading(true);
-
     try {
       let url = `${API_URL}/album-media/upload-media`;
       let headers = {};
       let params = {};
-
       if (isAuthenticated && user) {
         headers = { Authorization: `Bearer ${user.token}` };
         if (user.role === 'admin') {
@@ -286,7 +260,6 @@ const AlbumPage = () => {
       } else {
         throw new Error('No valid authentication method available for upload');
       }
-
       const response = await axios.post(url, formData, {
         headers: { ...headers, 'Content-Type': 'multipart/form-data' },
         params: params,
@@ -296,12 +269,13 @@ const AlbumPage = () => {
           setUploadProgress(percentCompleted);
         }
       });
-
       const newMedia = {
         _id: response.data._id,
         mediaUrl: response.data.mediaUrl,
         title: file.name,
         createdAt: new Date().toISOString(),
+        challengeTitle: response.data.challengeTitle || '',
+        uploaderUsername: response.data.uploaderUsername || ''
       };
       setAlbumData(prevData => ({
         ...prevData,
@@ -355,9 +329,9 @@ const AlbumPage = () => {
       const lastMediaId = albumData.media[albumData.media.length - 1]._id;
       let url = `${API_URL}/album-media/load-more`;
       let headers = {};
-      let params = { 
-        albumId: user?.albumId || await fetchAlbumIdFromToken(guestAlbumToken), 
-        lastMediaId 
+      let params = {
+        albumId: user?.albumId || await fetchAlbumIdFromToken(guestAlbumToken),
+        lastMediaId,
       };
 
       if (isAuthenticated) {
@@ -365,9 +339,12 @@ const AlbumPage = () => {
       } else if (guestAlbumToken) {
         params.token = guestAlbumToken;
       }
-
       const response = await axios.get(url, { params, headers });
-      const newMedia = response.data.media;
+      const newMedia = response.data.media.map(item => ({
+        ...item,
+        challengeTitle: item.challengeTitle || '',
+        uploaderUsername: item.uploaderUsername || ''
+      }));
       setAlbumData(prevData => {
         const updatedData = {
           ...prevData,
@@ -396,8 +373,8 @@ const AlbumPage = () => {
         className="p-4 md:p-8 pb-20"
       >
         <div className="text-center max-w-2xl mx-auto mb-8 mt-10">
-          <ProfilePicture 
-            isAdmin={isAuthenticated && user?.role === 'admin'} 
+          <ProfilePicture
+            isAdmin={isAuthenticated && user?.role === 'admin'}
             userId={user?._id}
             guestAlbumToken={guestAlbumToken}
           />
@@ -408,13 +385,11 @@ const AlbumPage = () => {
         </div>
 
         {errorMessage && <div className="text-red-500 text-center mb-4">{errorMessage}</div>}
-
         {isUploading && (
           <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4 dark:bg-gray-700">
             <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: `${uploadProgress}%` }}></div>
           </div>
         )}
-
         {!loadingSettings && (
           <Suspense fallback={<Spinner />}>
             <MediaGrid
@@ -427,11 +402,12 @@ const AlbumPage = () => {
               loadMoreMedia={loadMoreMedia}
               isAdmin={isAuthenticated && user?.role === 'admin'}
               onDelete={handleDelete}
+              showChallengeTitle={true}
+              showUploaderUsername={true}
             />
           </Suspense>
         )}
       </motion.div>
-
       {isModalOpen && selectedMedia && (
         <Suspense fallback={<Spinner />}>
           <MediaModal
@@ -441,6 +417,8 @@ const AlbumPage = () => {
             comments={{}}
             setComments={() => {}}
             guestSession={guestAlbumToken}
+            showChallengeTitle={true}
+            showUploaderUsername={true}
           />
         </Suspense>
       )}

@@ -6,8 +6,10 @@ import AlbumMedia from '../models/albumMedia.model.js';
 import { v4 as uuidv4 } from 'uuid';
 import { authMiddleware, requireRole } from '../middleware/authMiddleware.js';
 import sharp from 'sharp';
+
 const router = express.Router();
 router.use(fileUpload());
+
 // Configure the S3 Client
 const s3Client = new S3Client({
   region: process.env.AWS_REGION,
@@ -16,6 +18,7 @@ const s3Client = new S3Client({
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
   },
 });
+
 // Helper function to upload file to S3
 async function uploadToS3(file, key) {
   const uploadParams = {
@@ -27,8 +30,9 @@ async function uploadToS3(file, key) {
   await s3Client.send(new PutObjectCommand(uploadParams));
   return `https://${process.env.AWS_S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
 }
+
 // Helper function to process media uploads
-async function processUploadRequest(req, res, userId, albumId) {
+async function processUploadRequest(req, res, userId, albumId, challengeTitle, uploaderUsername) {
   console.log('Received files:', req.files);
   if (!req.files || !req.files.mediaFile) {
     return res.status(400).json({ error: 'No media file uploaded.' });
@@ -48,9 +52,6 @@ async function processUploadRequest(req, res, userId, albumId) {
       const thumbnailKey = `${userId}/${albumId}/thumbnails/${uniqueFileName}`;
       thumbnailUrl = await uploadToS3(thumbnailBuffer, thumbnailKey);
     } else if (mediaFile.mimetype.startsWith('video')) {
-      // For videos, you might want to generate a thumbnail from the first frame
-      // This would require additional processing, possibly using ffmpeg
-      // For now, we'll use a placeholder or the same URL as the original
       thumbnailUrl = mediaUrl;
     }
     const newMedia = await AlbumMedia.create({
@@ -59,8 +60,17 @@ async function processUploadRequest(req, res, userId, albumId) {
       mediaType: mediaFile.mimetype.startsWith('image') ? 'image' : 'video',
       albumId,
       userId,
+      challengeTitle,
+      uploaderUsername
     });
-    res.status(201).json({ mediaUrl, thumbnailUrl, albumId, _id: newMedia._id });
+    res.status(201).json({ 
+      mediaUrl, 
+      thumbnailUrl, 
+      albumId, 
+      _id: newMedia._id,
+      challengeTitle,
+      uploaderUsername
+    });
   } catch (err) {
     console.error('Error processing upload:', err);
     res.status(500).json({ error: 'Failed to process upload.' });
@@ -90,7 +100,12 @@ router.post('/upload-media', authMiddleware, async (req, res) => {
     }
 
     console.log('Final Album ID for upload:', albumId);
-    await processUploadRequest(req, res, userId, albumId);
+
+    // Extract challengeTitle and uploaderUsername from the request body
+    const { challengeTitle, uploaderUsername } = req.body;
+
+    // Pass these new fields to the processUploadRequest function
+    await processUploadRequest(req, res, userId, albumId, challengeTitle, uploaderUsername);
   } catch (error) {
     console.error('Server error during media upload:', error);
     res.status(500).json({ error: 'Server error during media upload.' });
@@ -116,7 +131,12 @@ router.get('/media/:albumId', authMiddleware, async (req, res) => {
     }
 
     const [media, total] = await Promise.all([
-      AlbumMedia.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+      AlbumMedia.find(query)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .select('mediaUrl thumbnailUrl mediaType albumId userId challengeTitle uploaderUsername createdAt')
+        .lean(),
       AlbumMedia.countDocuments(query)
     ]);
 
@@ -161,7 +181,6 @@ router.delete('/media/:id', authMiddleware, requireRole('admin'), async (req, re
       // For now, we'll continue with the database deletion
     }
 
-    // Change this line
     await AlbumMedia.findByIdAndDelete(id);
     console.log('Media document removed from database');
 

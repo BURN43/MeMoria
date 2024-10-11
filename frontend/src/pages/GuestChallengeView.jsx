@@ -6,7 +6,6 @@ import Layout from '../components/Layout';
 import { FaUpload } from 'react-icons/fa';
 import { useAuthStore } from '../store/authStore';
 import UsernamePopup from '../components/UsernamePopup';
-import { debounce } from 'lodash';
 
 const BASE_URL = 'https://e7ea99a1-f3aa-439b-97db-82d9e87187ed-00-1etsckkyhp4f3.spock.replit.dev:5000';
 
@@ -14,10 +13,7 @@ const GuestChallengeView = () => {
   const { user } = useAuthStore();
   const userId = useMemo(() => user ? user._id : null, [user]);
   const albumId = useMemo(() => user ? user.albumId : null, [user]);
-  const [challenges, setChallenges] = useState(() => {
-    const cachedChallenges = localStorage.getItem('challenges');
-    return cachedChallenges ? JSON.parse(cachedChallenges) : [];
-  });
+  const [challenges, setChallenges] = useState([]);
   const [selectedChallenge, setSelectedChallenge] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
   const [isPopupVisible, setIsPopupVisible] = useState(false);
@@ -31,29 +27,27 @@ const GuestChallengeView = () => {
   }, [location.search]);
 
   const fetchChallenges = useCallback(async () => {
-    const cachedTimestamp = localStorage.getItem('challengesTimestamp');
-    const currentTime = new Date().getTime();
-
-    if (cachedTimestamp && currentTime - parseInt(cachedTimestamp) < 3600000) {
-      return; // Use cached challenges if they're less than an hour old
-    }
-
     try {
       let res;
       if (albumToken) {
+        console.log('Fetching challenges with album token:', albumToken);
         res = await axios.get(`${BASE_URL}/challenges/public/${albumToken}`);
       } else if (albumId) {
-        res = await axios.get(`${BASE_URL}/challenges`);
+        console.log('Fetching challenges with albumId:', albumId);
+        res = await axios.get(`${BASE_URL}/challenges`, {
+          params: { albumId },
+          withCredentials: true
+        });
+      } else {
+        throw new Error('No album token or album ID provided');
       }
+      console.log('Challenges fetched:', res.data);
       setChallenges(res.data);
-      localStorage.setItem('challenges', JSON.stringify(res.data));
-      localStorage.setItem('challengesTimestamp', currentTime.toString());
     } catch (err) {
-      console.error('Error fetching challenges:', err);
-      setErrorMessage('Failed to load challenges. Please try again later.');
+      console.error('Error fetching challenges:', err.response?.data || err.message);
+      setErrorMessage(`Failed to load challenges: ${err.response?.data?.message || err.message}`);
     }
   }, [albumId, albumToken]);
-
   useEffect(() => {
     fetchChallenges();
   }, [fetchChallenges]);
@@ -69,7 +63,7 @@ const GuestChallengeView = () => {
     setIsPopupVisible(true);
   }, []);
 
-  const onUsernameSubmit = useCallback(debounce(async (username) => {
+  const onUsernameSubmit = useCallback(async (username) => {
     if (!selectedChallenge || !(albumId || albumToken) || !pendingFile) return;
 
     const confirmUpload = window.confirm("Are you sure you want to upload this image?");
@@ -85,6 +79,8 @@ const GuestChallengeView = () => {
     try {
       await axios.post(`${BASE_URL}/api/album-media/upload-media`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
+        params: albumToken ? { token: albumToken } : {},
+        withCredentials: !!albumId
       });
 
       alert('Image uploaded successfully!');
@@ -95,9 +91,9 @@ const GuestChallengeView = () => {
       console.error('Error uploading image:', err);
       setErrorMessage('Upload failed. Please try again.');
     }
-  }, 500), [selectedChallenge, albumId, albumToken, pendingFile, userId]);
+  }, [selectedChallenge, albumId, albumToken, pendingFile, userId]);
 
-  const ChallengeCard = React.memo(({ challenge }) => (
+  const ChallengeCard = useCallback(({ challenge }) => (
     <div key={challenge._id} className="bg-card rounded-xl p-4 shadow-md transition-all">
       <h3 className="text-lg font-bold text-light">{challenge.title}</h3>
       <div className="mt-4 space-y-2">
@@ -110,7 +106,7 @@ const GuestChallengeView = () => {
         )}
       </div>
     </div>
-  ));
+  ), [handleFileSelect, selectedChallenge]);
 
   return (
     <Layout>
@@ -131,12 +127,14 @@ const GuestChallengeView = () => {
 
         {errorMessage ? (
           <div className="text-center text-red-400">{errorMessage}</div>
-        ) : (
+        ) : challenges.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             {challenges.map((challenge) => (
               <ChallengeCard key={challenge._id} challenge={challenge} />
             ))}
           </div>
+        ) : (
+          <div className="text-center text-gray-300">No challenges available at the moment.</div>
         )}
       </motion.div>
     </Layout>

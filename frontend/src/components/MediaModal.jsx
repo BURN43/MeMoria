@@ -60,6 +60,8 @@ const MediaModal = ({
   comments,
   setComments,
   guestSession,
+  showChallengeTitle,
+  showUploaderUsername
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showCommentPanel, setShowCommentPanel] = useState(false);
@@ -172,6 +174,12 @@ const MediaModal = ({
               </div>
 
               <div className="absolute bottom-0 w-full text-center text-white bg-gradient-to-t from-black to-transparent py-4">
+                {showChallengeTitle && item.challengeTitle && (
+                  <p className="font-semibold mb-1">Challenge: {item.challengeTitle}</p>
+                )}
+                {showUploaderUsername && item.uploaderUsername && (
+                  <p className="mb-2">Uploaded by: {item.uploaderUsername}</p>
+                )}
                 <p>von <span className="font-semibold">{item.author || 'Unknown'}</span></p>
                 <p className="text-sm">{new Date(item.createdAt).toLocaleString()}</p>
               </div>
