@@ -1,155 +1,101 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, lazy, Suspense, useCallback } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
-import NavBar from './components/NavBar'; // Existing NavBar for authenticated users
-import GuestNavBar from './components/GuestNavBar'; // New NavBar for token-based access
 import { useAuthStore } from './store/authStore';
-
-import SignUpPage from './pages/SignUpPage';
-import SettingsPage from './pages/SettingsPage';
-import LoginPage from './pages/LoginPage';
-import EmailVerificationPage from './pages/EmailVerificationPage';
-import DashboardPage from './pages/DashboardPage';
-import ForgotPasswordPage from './pages/ForgotPasswordPage';
-import ResetPasswordPage from './pages/ResetPasswordPage';
-import DesignTableStandPage from './pages/DesignTableStandPage';
-import PhotoChallengePage from './pages/PhotoChallengePage';
-import GuestChallengeView from './pages/GuestChallengeView';
-import AlbumWithToken from './pages/AlbumWithToken'; // Import custom component
-import './styles/global.css';
 import { Toaster } from 'react-hot-toast';
 
+// Lazy load components
+const NavBar = lazy(() => import('./components/NavBar'));
+const GuestNavBar = lazy(() => import('./components/GuestNavBar'));
+const SignUpPage = lazy(() => import('./pages/SignUpPage'));
+const SettingsPage = lazy(() => import('./pages/SettingsPage'));
+const LoginPage = lazy(() => import('./pages/LoginPage'));
+const EmailVerificationPage = lazy(() => import('./pages/EmailVerificationPage'));
+const DashboardPage = lazy(() => import('./pages/DashboardPage'));
+const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'));
+const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'));
+const DesignTableStandPage = lazy(() => import('./pages/DesignTableStandPage'));
+const PhotoChallengePage = lazy(() => import('./pages/PhotoChallengePage'));
+const GuestChallengeView = lazy(() => import('./pages/GuestChallengeView'));
+const AlbumWithToken = lazy(() => import('./pages/AlbumWithToken'));
 
+import './styles/global.css';
+
+// Loading component
+const Loading = React.memo(() => <div>Loading...</div>);
 
 // Admin Protected Route
-const AdminProtectedRoute = ({ children }) => {
-	const { isAuthenticated, user } = useAuthStore();
+const AdminProtectedRoute = React.memo(({ children }) => {
+	const { isAuthenticated, user, isLoading } = useAuthStore();
+	const location = useLocation();
 
-	if (!isAuthenticated) {
-		return <Navigate to='/login' replace />;
-	}
-
-	if (!user.isVerified) {
-		return <Navigate to='/verify-email' replace />;
-	}
-
-	if (user.role !== 'admin') {
-		return <div>Access Denied: Admins only</div>;
-	}
+	if (isLoading) return <Loading />;
+	if (!isAuthenticated) return <Navigate to='/login' state={{ from: location }} replace />;
+	if (!user.isVerified) return <Navigate to='/verify-email' state={{ from: location }} replace />;
+	if (user.role !== 'admin') return <div>Access Denied: Admins only</div>;
 
 	return children;
-};
+});
 
 // Redirect Authenticated User
-const RedirectAuthenticatedUser = ({ children }) => {
-	const { isAuthenticated, user } = useAuthStore();
+const RedirectAuthenticatedUser = React.memo(({ children }) => {
+	const { isAuthenticated, user, isLoading } = useAuthStore();
+	const location = useLocation();
 
+	if (isLoading) return <Loading />;
 	if (isAuthenticated && user.isVerified) {
-		return <Navigate to='/' replace />;
+		const from = location.state?.from?.pathname || '/';
+		return <Navigate to={from} replace />;
 	}
 
 	return children;
-};
+});
 
 function App() {
-	const { checkAuth, user, isAuthenticated } = useAuthStore();
+	const { checkAuth, user, isAuthenticated, isLoading } = useAuthStore();
 	const location = useLocation();
+	const [isInitialized, setIsInitialized] = useState(false);
+
 	const query = new URLSearchParams(location.search);
 	const albumToken = query.get('token');
 
-	useEffect(() => {
-		if (!albumToken) {
-			// Only check authentication if there is no album token
-			checkAuth();
+	const initializeAuth = useCallback(async () => {
+		if (!albumToken && !isAuthenticated) {
+			await checkAuth();
 		}
-	}, [checkAuth, albumToken]);
+		setIsInitialized(true);
+	}, [checkAuth, albumToken, isAuthenticated]);
+
+	useEffect(() => {
+		initializeAuth();
+	}, [initializeAuth]);
+
+	if (!isInitialized || isLoading) {
+		return <Loading />;
+	}
 
 	return (
-		<div
-			className='min-h-screen bg-gradient-to-br
-				from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center relative overflow-hidden'
-		>
-			{albumToken ? <GuestNavBar /> : isAuthenticated && <NavBar />}
+		<div className='min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center relative overflow-hidden'>
+			<Suspense fallback={<Loading />}>
+				{albumToken ? <GuestNavBar /> : isAuthenticated && <NavBar />}
 
-			<Routes>
-				<Route
-					path='/'
-					element={
-						<AdminProtectedRoute>
-							<DashboardPage />
-						</AdminProtectedRoute>
-					}
-				/>
-				<Route
-					path='/settings'
-					element={
-						<AdminProtectedRoute>
-							<SettingsPage />
-						</AdminProtectedRoute>
-					}
-				/>
-				<Route
-					path='/album'
-					element={<AlbumWithToken />} // Accessible without admin privileges
-				/>
-				<Route
-					path='/photo-challenge'
-					element={
-						<AdminProtectedRoute>
-							<PhotoChallengePage />
-						</AdminProtectedRoute>
-					}
-				/>
-				<Route
-					path='/guest-challenge'
-					element={<GuestChallengeView />} // Accessible without admin privileges
-				/>
-				<Route
-					path='/design-table-stand'
-					element={
-						<AdminProtectedRoute>
-							<DesignTableStandPage />
-						</AdminProtectedRoute>
-					}
-				/>
-				<Route
-					path='/signup'
-					element={
-						<RedirectAuthenticatedUser>
-							<SignUpPage />
-						</RedirectAuthenticatedUser>
-					}
-				/>
-				<Route
-					path='/login'
-					element={
-						<RedirectAuthenticatedUser>
-							<LoginPage />
-						</RedirectAuthenticatedUser>
-					}
-				/>
-				<Route path='/verify-email' element={<EmailVerificationPage />} />
-				<Route
-					path='/forgot-password'
-					element={
-						<RedirectAuthenticatedUser>
-							<ForgotPasswordPage />
-						</RedirectAuthenticatedUser>
-					}
-				/>
-				<Route
-					path='/reset-password/:token'
-					element={
-						<RedirectAuthenticatedUser>
-							<ResetPasswordPage />
-						</RedirectAuthenticatedUser>
-					}
-				/>
-				{/* Catch-all route */}
-				<Route path='*' element={<Navigate to='/' replace />} />
-			</Routes>
+				<Routes>
+					<Route path='/' element={<AdminProtectedRoute><DashboardPage /></AdminProtectedRoute>} />
+					<Route path='/settings' element={<AdminProtectedRoute><SettingsPage /></AdminProtectedRoute>} />
+					<Route path='/album' element={<AlbumWithToken />} />
+					<Route path='/photo-challenge' element={<AdminProtectedRoute><PhotoChallengePage /></AdminProtectedRoute>} />
+					<Route path='/guest-challenge' element={<GuestChallengeView />} />
+					<Route path='/design-table-stand' element={<AdminProtectedRoute><DesignTableStandPage /></AdminProtectedRoute>} />
+					<Route path='/signup' element={<RedirectAuthenticatedUser><SignUpPage /></RedirectAuthenticatedUser>} />
+					<Route path='/login' element={<RedirectAuthenticatedUser><LoginPage /></RedirectAuthenticatedUser>} />
+					<Route path='/verify-email' element={<EmailVerificationPage />} />
+					<Route path='/forgot-password' element={<RedirectAuthenticatedUser><ForgotPasswordPage /></RedirectAuthenticatedUser>} />
+					<Route path='/reset-password/:token' element={<RedirectAuthenticatedUser><ResetPasswordPage /></RedirectAuthenticatedUser>} />
+					<Route path='*' element={<Navigate to='/' replace />} />
+				</Routes>
+			</Suspense>
 			<Toaster />
 		</div>
 	);
 }
 
-export default App;
+export default React.memo(App);

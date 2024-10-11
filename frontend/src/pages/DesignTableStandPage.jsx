@@ -1,15 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import Layout from '../components/Layout';
 import { QRCodeCanvas } from 'qrcode.react';
-import { useAuthStore } from '../store/authStore'; // Assuming this hook provides user data
-import { Navigate } from 'react-router-dom'; // Import for navigation
+import { useAuthStore } from '../store/authStore';
+import { Navigate } from 'react-router-dom';
 
 const DesignTableStandPage = () => {
   const { user } = useAuthStore();
   const [albumToken, setAlbumToken] = useState('');
-  const [foregroundColor, setForegroundColor] = useState('#000000');
-  const [qrCodeSize, setQrCodeSize] = useState(250);
+  const [foregroundColor, setForegroundColor] = useState(() => {
+    return localStorage.getItem('qrCodeForegroundColor') || '#000000';
+  });
+  const [qrCodeSize, setQrCodeSize] = useState(() => {
+    return parseInt(localStorage.getItem('qrCodeSize') || '250', 10);
+  });
   const [logo, setLogo] = useState(null);
 
   useEffect(() => {
@@ -18,9 +22,19 @@ const DesignTableStandPage = () => {
     }
   }, [user]);
 
-  const albumLink = `https://e7ea99a1-f3aa-439b-97db-82d9e87187ed-00-1etsckkyhp4f3.spock.replit.dev:5173/album/?token=${albumToken}`;
+  useEffect(() => {
+    localStorage.setItem('qrCodeForegroundColor', foregroundColor);
+  }, [foregroundColor]);
 
-  const handleLogoUpload = (e) => {
+  useEffect(() => {
+    localStorage.setItem('qrCodeSize', qrCodeSize.toString());
+  }, [qrCodeSize]);
+
+  const albumLink = useMemo(() => {
+    return `https://e7ea99a1-f3aa-439b-97db-82d9e87187ed-00-1etsckkyhp4f3.spock.replit.dev:5173/album/?token=${albumToken}`;
+  }, [albumToken]);
+
+  const handleLogoUpload = useCallback((e) => {
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
@@ -29,27 +43,28 @@ const DesignTableStandPage = () => {
       };
       reader.readAsDataURL(file);
     }
-  };
+  }, []);
 
-  const handleQRCodeDownload = () => {
+  const handleQRCodeDownload = useCallback(() => {
     const canvas = document.querySelector('canvas');
-    const pngUrl = canvas.toDataURL('image/png');
-    const downloadLink = document.createElement('a');
-    downloadLink.href = pngUrl;
-    downloadLink.download = 'album-qr-code.png';
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
-    document.body.removeChild(downloadLink);
-  };
+    if (canvas) {
+      const pngUrl = canvas.toDataURL('image/png');
+      const downloadLink = document.createElement('a');
+      downloadLink.href = pngUrl;
+      downloadLink.download = 'album-qr-code.png';
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+    }
+  }, []);
 
-  const handleCopyLink = () => {
+  const handleCopyLink = useCallback(() => {
     navigator.clipboard.writeText(albumLink);
     alert('Link copied to clipboard!');
-  };
+  }, [albumLink]);
 
-  // Redirect or deny access if the user is not an admin
   if (!user || user.role !== 'admin') {
-    return <Navigate to="/" replace />; // Alternatively, show a message: return <div>Access Denied: Admins only</div>;
+    return <Navigate to="/" replace />;
   }
 
   return (
@@ -92,7 +107,7 @@ const DesignTableStandPage = () => {
                 min="100"
                 max="500"
                 value={qrCodeSize}
-                onChange={(e) => setQrCodeSize(e.target.value)}
+                onChange={(e) => setQrCodeSize(parseInt(e.target.value, 10))}
                 className="w-full"
               />
               <p className="text-gray-300 text-sm mt-1">Size: {qrCodeSize}px</p>
@@ -111,7 +126,7 @@ const DesignTableStandPage = () => {
           <div className="flex justify-center items-center">
             <QRCodeCanvas
               value={albumLink}
-              size={parseInt(qrCodeSize)}
+              size={qrCodeSize}
               fgColor={foregroundColor}
               imageSettings={
                 logo
@@ -160,4 +175,4 @@ const DesignTableStandPage = () => {
   );
 };
 
-export default DesignTableStandPage;
+export default React.memo(DesignTableStandPage);

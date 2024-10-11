@@ -1,16 +1,19 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, lazy, Suspense } from 'react';
 import { useAuthStore } from '../store/authStore';
 import axios from 'axios';
 import { useLocation, Navigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Layout from '../components/Layout';
-import MediaGrid from '../components/MediaGrid';
-import MediaModal from '../components/MediaModal';
 import { FaPlus } from 'react-icons/fa';
+import { debounce } from 'lodash';
 
 const API_URL = import.meta.env.MODE === 'development'
   ? 'https://e7ea99a1-f3aa-439b-97db-82d9e87187ed-00-1etsckkyhp4f3.spock.replit.dev:5000/api'
   : '/api';
+
+// Lazy load components
+const MediaGrid = lazy(() => import('../components/MediaGrid'));
+const MediaModal = lazy(() => import('../components/MediaModal'));
 
 // Inline Spinner component
 const Spinner = () => (
@@ -19,30 +22,41 @@ const Spinner = () => (
   </div>
 );
 
-// ProfilePicture component
-const ProfilePicture = ({ isAdmin, userId, guestAlbumToken }) => {
-  const [profilePic, setProfilePic] = useState(null);
+// Optimized ProfilePicture component with local storage caching
+const ProfilePicture = React.memo(({ isAdmin, userId, guestAlbumToken }) => {
+  const [profilePic, setProfilePic] = useState(() => localStorage.getItem('profilePicUrl'));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    fetchProfilePicture();
-  }, [userId, guestAlbumToken]);
+  const fetchProfilePicture = useCallback(async () => {
+    const cachedUrl = localStorage.getItem('profilePicUrl');
+    const cachedTimestamp = localStorage.getItem('profilePicTimestamp');
+    const now = Date.now();
 
-  const fetchProfilePicture = async () => {
+    if (cachedUrl && cachedTimestamp && now - parseInt(cachedTimestamp) < 3600000) {
+      setProfilePic(cachedUrl);
+      return;
+    }
+
     try {
       const response = await axios.get(`${API_URL}/profile-picture/profile`, {
         params: guestAlbumToken ? { token: guestAlbumToken } : {},
         withCredentials: true
       });
       setProfilePic(response.data.profilePicUrl);
+      localStorage.setItem('profilePicUrl', response.data.profilePicUrl);
+      localStorage.setItem('profilePicTimestamp', now.toString());
     } catch (error) {
       console.error('Error fetching profile picture:', error);
       setError('Failed to load profile picture');
     }
-  };
+  }, [guestAlbumToken]);
 
-  const handleUpload = async (event) => {
+  useEffect(() => {
+    fetchProfilePicture();
+  }, [fetchProfilePicture]);
+
+  const handleUpload = useCallback(async (event) => {
     const file = event.target.files[0];
     if (!file) return;
 
@@ -58,13 +72,15 @@ const ProfilePicture = ({ isAdmin, userId, guestAlbumToken }) => {
         withCredentials: true
       });
       setProfilePic(response.data.profilePicUrl);
+      localStorage.setItem('profilePicUrl', response.data.profilePicUrl);
+      localStorage.setItem('profilePicTimestamp', Date.now().toString());
     } catch (error) {
       console.error('Error uploading profile picture:', error);
       setError('Failed to upload profile picture');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   return (
     <div className="relative w-40 h-40 mx-auto mb-6">
@@ -81,7 +97,7 @@ const ProfilePicture = ({ isAdmin, userId, guestAlbumToken }) => {
           />
           {isAdmin && (
             <div className="absolute inset-0 flex items-center justify-center bg-purple-200 bg-opacity-75 rounded-full opacity-0 hover:opacity-100 transition-opacity duration-300">
-              <span className="text-purple-600 text-sm">Profilbild ändern</span>
+              <span className="text-purple-600 text-sm">Change Profile Picture</span>
               <input
                 type="file"
                 accept="image/*"
@@ -102,7 +118,7 @@ const ProfilePicture = ({ isAdmin, userId, guestAlbumToken }) => {
                 onChange={handleUpload}
               />
               <FaPlus className="text-3xl text-purple-600" />
-              <div className="mt-1 text-xs text-purple-600">Profilbild hinzufügen</div>
+              <div className="mt-1 text-xs text-purple-600">Add Profile Picture</div>
             </label>
           ) : (
             <img
@@ -116,111 +132,133 @@ const ProfilePicture = ({ isAdmin, userId, guestAlbumToken }) => {
       {error && <div className="text-red-500 text-sm mt-2">{error}</div>}
     </div>
   );
-};
+});
 
 const AlbumPage = () => {
   const { user, isAuthenticated } = useAuthStore();
-  const albumId = user ? user.albumId : null;
-
   const location = useLocation();
-  const query = new URLSearchParams(location.search);
-  const guestAlbumToken = query.get('token');
+  const guestAlbumToken = useMemo(() => new URLSearchParams(location.search).get('token'), [location.search]);
 
-  const [title, setTitle] = useState('');
-  const [greetingText, setGreetingText] = useState('');
-  const [media, setMedia] = useState([]);
+  const [albumData, setAlbumData] = useState(() => {
+    const cachedData = localStorage.getItem('albumData');
+    return cachedData ? JSON.parse(cachedData) : {
+      title: '',
+      greetingText: '',
+      media: [],
+      guestUploadsImage: false,
+      guestUploadsVideo: false,
+    };
+  });
+
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
   const [selectedMedia, setSelectedMedia] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [guestUploadsImage, setGuestUploadsImage] = useState(false);
-  const [guestUploadsVideo, setGuestUploadsVideo] = useState(false);
   const [loadingSettings, setLoadingSettings] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [redirectToLogin, setRedirectToLogin] = useState(false);
 
-  useEffect(() => {
-    if (!isAuthenticated && !guestAlbumToken) {
-      setRedirectToLogin(true);
-    }
-  }, [isAuthenticated, guestAlbumToken]);
-
-  const canUpload = useCallback(() => {
+  const canUpload = useMemo(() => {
     if (isAuthenticated && user?.role === 'admin') return true;
-    if (guestAlbumToken && (guestUploadsImage || guestUploadsVideo)) return true;
+    if (guestAlbumToken && (albumData.guestUploadsImage || albumData.guestUploadsVideo)) return true;
     return false;
-  }, [isAuthenticated, user, guestAlbumToken, guestUploadsImage, guestUploadsVideo]);
+  }, [isAuthenticated, user, guestAlbumToken, albumData.guestUploadsImage, albumData.guestUploadsVideo]);
 
-  const fetchAlbumIdFromToken = async (token) => {
+  const fetchAlbumIdFromToken = useCallback(async (token) => {
     if (!token) return null;
     try {
+      const cachedId = localStorage.getItem('albumId');
+      if (cachedId) return cachedId;
+
       const response = await axios.get(`${API_URL}/user/album-id`, {
         params: { token },
         withCredentials: false,
       });
-      return response.data.albumId;
+      const albumId = response.data.albumId;
+      localStorage.setItem('albumId', albumId);
+      return albumId;
     } catch (error) {
       console.error('Error fetching album ID:', error);
       setErrorMessage('Invalid or expired token.');
       return null;
     }
-  };
+  }, []);
 
-  useEffect(() => {
-    const fetchAlbumData = async () => {
-      if (!isAuthenticated && !guestAlbumToken) {
+  const fetchAlbumData = useCallback(async () => {
+    if (!isAuthenticated && !guestAlbumToken) return;
+
+    try {
+      setLoadingSettings(true);
+      let currentAlbumId, queryParam, headers;
+
+      if (isAuthenticated && user) {
+        currentAlbumId = user.albumId;
+        headers = { Authorization: `Bearer ${user.token}` };
+      } else if (guestAlbumToken) {
+        currentAlbumId = await fetchAlbumIdFromToken(guestAlbumToken);
+        queryParam = `?token=${guestAlbumToken}`;
+      } else {
+        throw new Error('No valid authentication method available');
+      }
+
+      if (!currentAlbumId) {
+        throw new Error('Unable to determine album ID');
+      }
+
+      const cachedData = localStorage.getItem('albumData');
+      const cachedTimestamp = localStorage.getItem('albumDataTimestamp');
+      const now = Date.now();
+
+      if (cachedData && cachedTimestamp && now - parseInt(cachedTimestamp) < 300000) {
+        setAlbumData(JSON.parse(cachedData));
+        setLoadingSettings(false);
         return;
       }
 
-      try {
-        setLoadingSettings(true);
-        let currentAlbumId, queryParam, headers;
-
-        if (isAuthenticated && user) {
-          currentAlbumId = user.albumId;
-          headers = { Authorization: `Bearer ${user.token}` };
-        } else if (guestAlbumToken) {
-          currentAlbumId = await fetchAlbumIdFromToken(guestAlbumToken);
-          queryParam = `?token=${guestAlbumToken}`;
-        } else {
-          throw new Error('No valid authentication method available');
-        }
-
-        if (!currentAlbumId) {
-          throw new Error('Unable to determine album ID');
-        }
-
-        const response = await axios.get(`${API_URL}/album-media/media/${currentAlbumId}${queryParam || ''}`, {
+      const [mediaResponse, settingsResponse] = await Promise.all([
+        axios.get(`${API_URL}/album-media/media/${currentAlbumId}${queryParam || ''}`, {
           headers,
           withCredentials: true,
-        });
-        const sortedMedia = (response.data.media || []).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        setMedia(sortedMedia);
-
-        const settingsResponse = await axios.get(`${API_URL}/settings${queryParam || ''}`, {
+        }),
+        axios.get(`${API_URL}/settings${queryParam || ''}`, {
           headers,
           withCredentials: true,
-        });
-        const settingsData = settingsResponse.data;
+        })
+      ]);
 
-        setTitle(settingsData.albumTitle || 'Album');
-        setGreetingText(settingsData.greetingText || 'Welcome to the album!');
-        setGuestUploadsImage(settingsData.GuestUploadsImage || false);
-        setGuestUploadsVideo(settingsData.GuestUploadsVideo || false);
-      } catch (error) {
-        console.error('Failed to load album data:', error);
-        setErrorMessage('Failed to load album data: ' + (error.response?.data?.message || error.message));
-      } finally {
-        setLoadingSettings(false);
-      }
-    };
+      const sortedMedia = (mediaResponse.data.media || []).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      const settingsData = settingsResponse.data;
 
-    fetchAlbumData();
-  }, [albumId, guestAlbumToken, isAuthenticated, user]);
+      const newAlbumData = {
+        title: settingsData.albumTitle || 'Album',
+        greetingText: settingsData.greetingText || 'Welcome to the album!',
+        media: sortedMedia,
+        guestUploadsImage: settingsData.GuestUploadsImage || false,
+        guestUploadsVideo: settingsData.GuestUploadsVideo || false,
+      };
 
-  const handleMediaUpload = async (file) => {
-    if (!canUpload()) {
+      setAlbumData(newAlbumData);
+      localStorage.setItem('albumData', JSON.stringify(newAlbumData));
+      localStorage.setItem('albumDataTimestamp', now.toString());
+    } catch (error) {
+      console.error('Failed to load album data:', error);
+      setErrorMessage('Failed to load album data: ' + (error.response?.data?.message || error.message));
+    } finally {
+      setLoadingSettings(false);
+    }
+  }, [isAuthenticated, guestAlbumToken, user, fetchAlbumIdFromToken]);
+
+  useEffect(() => {
+    if (!isAuthenticated && !guestAlbumToken) {
+      setRedirectToLogin(true);
+    } else {
+      fetchAlbumData();
+    }
+  }, [isAuthenticated, guestAlbumToken, fetchAlbumData]);
+
+  const handleMediaUpload = useCallback(async (file) => {
+    if (!canUpload) {
       setErrorMessage('Media upload is Deactivated');
       return;
     }
@@ -265,7 +303,10 @@ const AlbumPage = () => {
         title: file.name,
         createdAt: new Date().toISOString(),
       };
-      setMedia((prevMedia) => [newMedia, ...prevMedia]);
+      setAlbumData(prevData => ({
+        ...prevData,
+        media: [newMedia, ...prevData.media]
+      }));
     } catch (error) {
       console.error('Upload failed:', error);
       setErrorMessage('Failed to upload media. ' + (error.response?.data?.error || error.message));
@@ -274,7 +315,7 @@ const AlbumPage = () => {
       setIsUploading(false);
       setUploadProgress(0);
     }
-  };
+  }, [canUpload, isUploading, isAuthenticated, user, guestAlbumToken]);
 
   const handleDelete = useCallback(async (mediaId) => {
     if (!isAuthenticated || user?.role !== 'admin') {
@@ -287,7 +328,10 @@ const AlbumPage = () => {
         headers: { Authorization: `Bearer ${user.token}` },
         withCredentials: true,
       });
-      setMedia(prevMedia => prevMedia.filter(item => item._id !== mediaId));
+      setAlbumData(prevData => ({
+        ...prevData,
+        media: prevData.media.filter(item => item._id !== mediaId)
+      }));
       console.log('Media deleted successfully');
     } catch (error) {
       console.error('Error deleting media:', error);
@@ -305,14 +349,14 @@ const AlbumPage = () => {
     setIsModalOpen(false);
   }, []);
 
-  const loadMoreMedia = async () => {
+  const loadMoreMedia = useCallback(debounce(async () => {
     try {
       setLoading(true);
-      const lastMediaId = media[media.length - 1]._id;
+      const lastMediaId = albumData.media[albumData.media.length - 1]._id;
       let url = `${API_URL}/album-media/load-more`;
       let headers = {};
       let params = { 
-        albumId: albumId || await fetchAlbumIdFromToken(guestAlbumToken), 
+        albumId: user?.albumId || await fetchAlbumIdFromToken(guestAlbumToken), 
         lastMediaId 
       };
 
@@ -324,16 +368,20 @@ const AlbumPage = () => {
 
       const response = await axios.get(url, { params, headers });
       const newMedia = response.data.media;
-      setMedia((prevMedia) => {
-        const updatedMedia = [...prevMedia, ...newMedia];
-        return updatedMedia.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      setAlbumData(prevData => {
+        const updatedData = {
+          ...prevData,
+          media: [...prevData.media, ...newMedia].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        };
+        localStorage.setItem('albumData', JSON.stringify(updatedData));
+        return updatedData;
       });
     } catch (error) {
       console.error('Failed to load more media:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, 300), [albumData.media, user, isAuthenticated, guestAlbumToken, fetchAlbumIdFromToken]);
 
   if (redirectToLogin) {
     return <Navigate to="/login" replace />;
@@ -354,9 +402,9 @@ const AlbumPage = () => {
             guestAlbumToken={guestAlbumToken}
           />
           <h1 className="text-4xl font-extrabold mb-2 text-gradient uppercase">
-            {title}
+            {albumData.title}
           </h1>
-          <p className="text-lg text-purple-400">{greetingText}</p>
+          <p className="text-lg text-purple-400">{albumData.greetingText}</p>
         </div>
 
         {errorMessage && <div className="text-red-500 text-center mb-4">{errorMessage}</div>}
@@ -368,32 +416,36 @@ const AlbumPage = () => {
         )}
 
         {!loadingSettings && (
-          <MediaGrid
-            media={media}
-            handleFileUpload={handleMediaUpload}
-            openModal={openModal}
-            loading={loading || isUploading}
-            canUpload={canUpload()}
-            infiniteScroll={true}
-            loadMoreMedia={loadMoreMedia}
-            isAdmin={isAuthenticated && user?.role === 'admin'}
-            onDelete={handleDelete}
-          />
+          <Suspense fallback={<Spinner />}>
+            <MediaGrid
+              media={albumData.media}
+              handleFileUpload={handleMediaUpload}
+              openModal={openModal}
+              loading={loading || isUploading}
+              canUpload={canUpload}
+              infiniteScroll={true}
+              loadMoreMedia={loadMoreMedia}
+              isAdmin={isAuthenticated && user?.role === 'admin'}
+              onDelete={handleDelete}
+            />
+          </Suspense>
         )}
       </motion.div>
 
       {isModalOpen && selectedMedia && (
-        <MediaModal
-          selectedMedia={selectedMedia}
-          closeModal={closeModal}
-          media={media}
-          comments={{}}
-          setComments={() => {}}
-          guestSession={guestAlbumToken}
-        />
+        <Suspense fallback={<Spinner />}>
+          <MediaModal
+            selectedMedia={selectedMedia}
+            closeModal={closeModal}
+            media={albumData.media}
+            comments={{}}
+            setComments={() => {}}
+            guestSession={guestAlbumToken}
+          />
+        </Suspense>
       )}
     </Layout>
   );
 };
 
-export default AlbumPage;
+export default React.memo(AlbumPage);

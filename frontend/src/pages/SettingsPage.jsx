@@ -1,92 +1,97 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import Layout from '../components/Layout';
 import axios from 'axios';
 import { useAuthStore } from '../store/authStore';
 import { Navigate } from 'react-router-dom';
+import { debounce } from 'lodash';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://e7ea99a1-f3aa-439b-97db-82d9e87187ed-00-1etsckkyhp4f3.spock.replit.dev:5000';
 
 const SettingsPage = () => {
   const { user } = useAuthStore();
-  const userId = user ? user._id : null;
 
-  if (!user || user.role !== 'admin') {
-    return <Navigate to="/unauthorized" replace={true} />;
-  }
+  const [settings, setSettings] = useState(() => {
+    const cachedSettings = localStorage.getItem('albumSettings');
+    return cachedSettings ? JSON.parse(cachedSettings) : {
+      albumTitle: '',
+      eventDate: '',
+      eventTime: '',
+      greetingText: '',
+      guestInfo: '',
+      GuestUploadsImage: false,
+      GuestUploadsVideo: false,
+      Guestcomments: false,
+      GuestDownloadOption: false,
+    };
+  });
 
-  // State variables
-  const [albumTitle, setAlbumTitle] = useState('');
-  const [eventDate, setEventDate] = useState('');
-  const [eventTime, setEventTime] = useState('');
-  const [greetingText, setGreetingText] = useState('');
-  const [guestInfo, setGuestInfo] = useState('');
-  const [GuestUploadsImage, setGuestUploadsImage] = useState(false);
-  const [GuestUploadsVideo, setGuestUploadsVideo] = useState(false);
-  const [Guestcomments, setGuestcomments] = useState(false);
-  const [GuestDownloadOption, setGuestDownloadOption] = useState(false);
   const [countdown, setCountdown] = useState(null);
   const [feedbackMessage, setFeedbackMessage] = useState('');
 
-  // Fetch settings
-  useEffect(() => {
-    const fetchSettings = async () => {
-      try {
-        const response = await axios.get(`${API_BASE_URL}/api/settings`, {
-          withCredentials: true,
-        });
-        const settingsData = response.data;
-        setAlbumTitle(settingsData.albumTitle || '');
-        setEventDate(
-          settingsData.eventDate
-            ? new Date(settingsData.eventDate).toISOString().split('T')[0]
-            : ''
-        );
-        setEventTime(settingsData.eventTime || '');
-        setGreetingText(settingsData.greetingText || '');
-        setGuestInfo(settingsData.guestInfo || '');
-        setGuestUploadsImage(settingsData.GuestUploadsImage || false);
-        setGuestUploadsVideo(settingsData.GuestUploadsVideo || false);
-        setGuestcomments(settingsData.Guestcomments || false);
-        setGuestDownloadOption(settingsData.GuestDownloadOption || false);
-      } catch (error) {
-        console.error('Error fetching settings:', error);
-      }
-    };
+  const fetchSettings = useCallback(async () => {
+    const cachedTimestamp = localStorage.getItem('albumSettingsTimestamp');
+    const currentTime = new Date().getTime();
 
-    fetchSettings();
+    if (cachedTimestamp && currentTime - parseInt(cachedTimestamp) < 3600000) {
+      return; // Use cached settings if they're less than an hour old
+    }
+
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/settings`, {
+        withCredentials: true,
+      });
+      const settingsData = response.data;
+      setSettings({
+        ...settingsData,
+        eventDate: settingsData.eventDate
+          ? new Date(settingsData.eventDate).toISOString().split('T')[0]
+          : '',
+      });
+
+      // Cache the fetched settings
+      localStorage.setItem('albumSettings', JSON.stringify(settingsData));
+      localStorage.setItem('albumSettingsTimestamp', currentTime.toString());
+    } catch (error) {
+      console.error('Error fetching settings:', error);
+    }
   }, []);
 
-  // Save settings
-  const handleSaveSettings = async () => {
-    const settings = {
-      albumTitle,
-      eventDate,
-      eventTime,
-      greetingText,
-      guestInfo,
-      GuestUploadsImage,
-      GuestUploadsVideo,
-      Guestcomments,
-      GuestDownloadOption,
-    };
+  useEffect(() => {
+    fetchSettings();
+  }, [fetchSettings]);
 
+  const handleInputChange = useCallback((e) => {
+    const { name, value, type, checked } = e.target;
+    setSettings(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+  }, []);
+
+  const debouncedSaveSettings = useMemo(() => debounce(async (settings) => {
     try {
       await axios.put(`${API_BASE_URL}/api/settings`, settings, {
         withCredentials: true,
       });
+      localStorage.setItem('albumSettings', JSON.stringify(settings));
+      localStorage.setItem('albumSettingsTimestamp', new Date().getTime().toString());
       setFeedbackMessage('Settings saved successfully!');
       setTimeout(() => setFeedbackMessage(''), 3000);
     } catch (error) {
       setFeedbackMessage('Error saving settings, please try again.');
       console.error('Error:', error);
     }
-  };
+  }, 500), []);
 
   useEffect(() => {
-    if (eventDate) {
+    debouncedSaveSettings(settings);
+  }, [settings, debouncedSaveSettings]);
+
+  useEffect(() => {
+    if (settings.eventDate) {
       const interval = setInterval(() => {
-        const eventDateTime = eventTime ? `${eventDate}T${eventTime}` : eventDate;
+        const eventDateTime = settings.eventTime ? `${settings.eventDate}T${settings.eventTime}` : settings.eventDate;
         const eventTimeMs = new Date(eventDateTime).getTime();
         const currentTimeMs = new Date().getTime();
         const timeLeft = eventTimeMs - currentTimeMs;
@@ -105,7 +110,11 @@ const SettingsPage = () => {
 
       return () => clearInterval(interval);
     }
-  }, [eventDate, eventTime]);
+  }, [settings.eventDate, settings.eventTime]);
+
+  if (!user || user.role !== 'admin') {
+    return <Navigate to="/unauthorized" replace={true} />;
+  }
 
   return (
     <Layout>
@@ -137,8 +146,9 @@ const SettingsPage = () => {
           <input
             type="text"
             style={{ textTransform: 'uppercase' }}
-            value={albumTitle || ''}
-            onChange={(e) => setAlbumTitle(e.target.value)}
+            name="albumTitle"
+            value={settings.albumTitle || ''}
+            onChange={handleInputChange}
             className="input"
             placeholder="Enter album title"
           />
@@ -146,20 +156,22 @@ const SettingsPage = () => {
           <label className="block text-gray-400 text-sm mb-2">Event Date</label>
           <input
             type="date"
-            value={eventDate || ''}
-            onChange={(e) => setEventDate(e.target.value)}
+            name="eventDate"
+            value={settings.eventDate || ''}
+            onChange={handleInputChange}
             className="input"
           />
 
           <label className="block text-gray-400 text-sm mb-2">Event Time (optional)</label>
           <input
             type="time"
-            value={eventTime || ''}
-            onChange={(e) => setEventTime(e.target.value)}
+            name="eventTime"
+            value={settings.eventTime || ''}
+            onChange={handleInputChange}
             className="input"
           />
 
-          {eventDate && (
+          {settings.eventDate && (
             <div className="mb-6">
               <h3 className="text-lg text-gray-400 mb-2">Countdown to Event</h3>
               <div className="py-3 px-4 bg-gray-800 text-white rounded-lg border border-gray-700">
@@ -170,8 +182,9 @@ const SettingsPage = () => {
 
           <label className="block text-gray-400 text-sm mb-2">Greeting Text</label>
           <textarea
-            value={greetingText || ''}
-            onChange={(e) => setGreetingText(e.target.value)}
+            name="greetingText"
+            value={settings.greetingText || ''}
+            onChange={handleInputChange}
             className="input"
             placeholder="Enter a greeting text for your guests"
             rows="3"
@@ -181,36 +194,28 @@ const SettingsPage = () => {
         <div className="bg-card p-8 shadow-lg max-w-3xl mx-auto">
           <h2 className="heading-lg text-gray-200">Additional Album Settings</h2>
           <div className="space-y-4">
-            <Checkbox label="Allow Image Uploads" isChecked={GuestUploadsImage} onChange={() => setGuestUploadsImage(!GuestUploadsImage)} isFirst={true} />
-            <Checkbox label="Allow Video Uploads" isChecked={GuestUploadsVideo} onChange={() => setGuestUploadsVideo(!GuestUploadsVideo)} />
-            <Checkbox label="Enable Comments" isChecked={Guestcomments} onChange={() => setGuestcomments(!Guestcomments)} />
-            <Checkbox label="Enable Download Options" isChecked={GuestDownloadOption} onChange={() => setGuestDownloadOption(!GuestDownloadOption)} />
+            <Checkbox label="Allow Image Uploads" name="GuestUploadsImage" isChecked={settings.GuestUploadsImage} onChange={handleInputChange} isFirst={true} />
+            <Checkbox label="Allow Video Uploads" name="GuestUploadsVideo" isChecked={settings.GuestUploadsVideo} onChange={handleInputChange} />
+            <Checkbox label="Enable Comments" name="Guestcomments" isChecked={settings.Guestcomments} onChange={handleInputChange} />
+            <Checkbox label="Enable Download Options" name="GuestDownloadOption" isChecked={settings.GuestDownloadOption} onChange={handleInputChange} />
           </div>
-        </div>
-
-        <div className="text-center mt-8">
-          <button
-            onClick={handleSaveSettings}
-            className="button bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
-          >
-            Save Settings
-          </button>
         </div>
       </motion.div>
     </Layout>
   );
 };
 
-const Checkbox = ({ label, isChecked, onChange, isFirst }) => (
+const Checkbox = React.memo(({ label, name, isChecked, onChange, isFirst }) => (
   <div className={`flex items-center justify-between py-2 ${isFirst ? 'pt-4' : ''}`}>
     <span className={`text-gray-300 ${isFirst ? 'font-bold' : ''}`}>{label}</span>
     <input
       type="checkbox"
+      name={name}
       checked={isChecked}
       onChange={onChange}
       className="form-checkbox h-6 w-6 text-blue-500"
     />
   </div>
-);
+));
 
-export default SettingsPage;
+export default React.memo(SettingsPage);

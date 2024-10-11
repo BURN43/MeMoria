@@ -1,82 +1,52 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import axios from 'axios';
 import { motion } from 'framer-motion';
-import { useAuthStore } from '../store/authStore';  // Assuming auth store provides admin info and albumId
+import { useAuthStore } from '../store/authStore';
 import Layout from '../components/Layout';
+
+const API_URL = 'https://e7ea99a1-f3aa-439b-97db-82d9e87187ed-00-1etsckkyhp4f3.spock.replit.dev:5000/challenges';
 
 const PhotoChallengePage = () => {
   const { user } = useAuthStore();
-  const isAdmin = user && user.role === 'admin';
-  const albumId = user ? user.albumId : null;
+  const isAdmin = useMemo(() => user && user.role === 'admin', [user]);
+  const albumId = useMemo(() => user ? user.albumId : null, [user]);
   const [challenges, setChallenges] = useState([]);
-  const [editedTitle, setEditedTitle] = useState('');
   const [newTitle, setNewTitle] = useState('');
 
-  const API_URL = 'https://e7ea99a1-f3aa-439b-97db-82d9e87187ed-00-1etsckkyhp4f3.spock.replit.dev:5000/challenges';
-
-  useEffect(() => {
-    if (!isAdmin || !albumId) return; // Ensure only admins with a valid albumId can fetch challenges
-
-    const fetchChallenges = async () => {
-      try {
-        const res = await axios.get(`${API_URL}?albumId=${albumId}`); // Fetch challenges by admin's albumId
-        setChallenges(res.data);
-      } catch (err) {
-        console.error('Error fetching challenges:', err);
-      }
-    };
-    fetchChallenges();
+  const fetchChallenges = useCallback(async () => {
+    if (!isAdmin || !albumId) return;
+    try {
+      const res = await axios.get(`${API_URL}?albumId=${albumId}`);
+      setChallenges(res.data);
+    } catch (err) {
+      console.error('Error fetching challenges:', err);
+    }
   }, [isAdmin, albumId]);
 
-  const enableEditing = (id, title) => {
-    setChallenges(
-      challenges.map((challenge) =>
-        challenge._id === id ? { ...challenge, isEditing: true } : challenge
-      )
-    );
-    setEditedTitle(title);
-  };
+  useEffect(() => {
+    fetchChallenges();
+  }, [fetchChallenges]);
 
-  const saveChanges = async (id) => {
-    try {
-      const updatedChallenge = { title: editedTitle };
-      const res = await axios.patch(`${API_URL}/${id}`, updatedChallenge);
-      setChallenges(challenges.map((challenge) =>
-        challenge._id === id ? { ...res.data, isEditing: false } : challenge
-      ));
-    } catch (err) {
-      console.error('Error saving changes:', err);
-    }
-  };
-
-  const cancelEditing = (id) => {
-    setChallenges(
-      challenges.map((challenge) =>
-        challenge._id === id ? { ...challenge, isEditing: false } : challenge
-      )
-    );
-  };
-
-  const deleteChallenge = async (id) => {
+  const deleteChallenge = useCallback(async (id) => {
     try {
       await axios.delete(`${API_URL}/${id}`);
-      setChallenges(challenges.filter((challenge) => challenge._id !== id));
+      setChallenges(challenges => challenges.filter(challenge => challenge._id !== id));
     } catch (err) {
       console.error('Error deleting challenge:', err);
     }
-  };
+  }, []);
 
-  const addNewChallenge = async () => {
+  const addNewChallenge = useCallback(async () => {
     if (newTitle && albumId) {
       try {
         const res = await axios.post(API_URL, { title: newTitle, albumId });
-        setChallenges([...challenges, res.data]);
+        setChallenges(challenges => [...challenges, res.data]);
         setNewTitle('');
       } catch (err) {
         console.error('Error adding challenge:', err);
       }
     }
-  };
+  }, [newTitle, albumId]);
 
   if (!isAdmin) {
     return <div>Access Denied: Admins only</div>;
@@ -121,62 +91,11 @@ const PhotoChallengePage = () => {
         {/* Challenges List */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {challenges.map((challenge) => (
-            <motion.div
+            <ChallengeCard
               key={challenge._id}
-              className="bg-card rounded-xl p-6 shadow-lg relative"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              {/* Editable Title */}
-              <div className="mb-4">
-                {challenge.isEditing ? (
-                  <input
-                    type="text"
-                    value={editedTitle}
-                    onChange={(e) => setEditedTitle(e.target.value)}
-                    className="text-xl font-bold bg-transparent border-b border-gray-500 focus:outline-none focus:border-blue-500 text-white w-full"
-                  />
-                ) : (
-                  <h3 className="text-xl font-bold text-white">{challenge.title}</h3>
-                )}
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex justify-around mt-4">
-                {challenge.isEditing ? (
-                  <>
-                    <button
-                      onClick={() => saveChanges(challenge._id)}
-                      className="bg-green-500 text-white px-4 py-2 rounded shadow hover:bg-green-600 transition"
-                    >
-                      Save
-                    </button>
-                    <button
-                      onClick={() => cancelEditing(challenge._id)}
-                      className="bg-red-500 text-white px-4 py-2 rounded shadow hover:bg-red-600 transition"
-                    >
-                      Cancel
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <button
-                      onClick={() => enableEditing(challenge._id, challenge.title)}
-                      className="bg-blue-500 text-white px-4 py-2 rounded shadow hover:bg-blue-600 transition"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => deleteChallenge(challenge._id)}
-                      className="bg-red-500 text-white px-4 py-2 rounded shadow hover:bg-red-600 transition"
-                    >
-                      Delete
-                    </button>
-                  </>
-                )}
-              </div>
-            </motion.div>
+              challenge={challenge}
+              deleteChallenge={deleteChallenge}
+            />
           ))}
         </div>
       </motion.div>
@@ -184,4 +103,26 @@ const PhotoChallengePage = () => {
   );
 };
 
-export default PhotoChallengePage;
+const ChallengeCard = React.memo(({ challenge, deleteChallenge }) => (
+  <motion.div
+    className="bg-card rounded-xl p-6 shadow-lg relative"
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.5 }}
+  >
+    <div className="mb-4">
+      <h3 className="text-xl font-bold text-white">{challenge.title}</h3>
+    </div>
+
+    <div className="flex justify-end mt-4">
+      <button
+        onClick={() => deleteChallenge(challenge._id)}
+        className="bg-red-500 text-white px-4 py-2 rounded shadow hover:bg-red-600 transition"
+      >
+        Delete
+      </button>
+    </div>
+  </motion.div>
+));
+
+export default React.memo(PhotoChallengePage);
