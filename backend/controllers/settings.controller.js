@@ -1,46 +1,42 @@
+// controllers/settings.controller.js
 import Settings from '../models/settings.model.js';
 
-// Get settings for a specific user
 export const getSettings = async (req, res) => {
   try {
-    const { userId } = req.params; // Use userId from req.params
+    const userId = req.user._id;
     const settings = await Settings.findOne({ userId });
     if (!settings) {
-      return res.status(404).json({ message: 'Settings not found' });
+      return res.status(404).json({ message: 'Settings not found.' });
     }
-    res.status(200).json(settings);
+    res.json(settings);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Error fetching settings:', error);
+    res.status(500).json({ message: 'Server error.' });
   }
 };
 
-// Update settings for a specific user
 export const updateSettings = async (req, res) => {
   try {
-    const { userId } = req.params; // Use userId from req.params
-    console.log('Updating settings for userId:', userId, 'with data:', req.body);
-
+    const userId = req.user._id;
     const updatedSettings = await Settings.findOneAndUpdate(
       { userId },
       req.body,
-      { new: true, upsert: true } // 'upsert: true' creates the document if it doesn't exist
+      { new: true, upsert: true } // Upsert to create if not exists
     );
-
-    console.log('Updated settings document:', updatedSettings);
-    res.status(200).json(updatedSettings);
+    res.json(updatedSettings);
   } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: error.message });
+    console.error('Error updating settings:', error);
+    res.status(500).json({ message: 'Server error.' });
   }
 };
 
-// Delete settings for a specific user
 export const deleteSettings = async (req, res) => {
   try {
-    const { userId } = req.params;
+    const userId = req.user._id;
     await Settings.findOneAndDelete({ userId });
-    res.status(200).json({ message: 'Settings deleted successfully' });
+    res.json({ message: 'Settings deleted.' });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Error deleting settings:', error);
+    res.status(500).json({ message: 'Server error.' });
   }
 };

@@ -1,14 +1,24 @@
-// src/pages/DesignTableStandPage.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Layout from '../components/Layout';
 import { QRCodeCanvas } from 'qrcode.react';
+import { useAuthStore } from '../store/authStore'; // Assuming this hook provides user data
+import { Navigate } from 'react-router-dom'; // Import for navigation
 
 const DesignTableStandPage = () => {
-  const [albumLink] = useState('https://your-album-link.com/event/12345');
+  const { user } = useAuthStore();
+  const [albumToken, setAlbumToken] = useState('');
   const [foregroundColor, setForegroundColor] = useState('#000000');
   const [qrCodeSize, setQrCodeSize] = useState(250);
   const [logo, setLogo] = useState(null);
+
+  useEffect(() => {
+    if (user && user.albumToken) {
+      setAlbumToken(user.albumToken);
+    }
+  }, [user]);
+
+  const albumLink = `https://e7ea99a1-f3aa-439b-97db-82d9e87187ed-00-1etsckkyhp4f3.spock.replit.dev:5173/album/?token=${albumToken}`;
 
   const handleLogoUpload = (e) => {
     const file = e.target.files[0];
@@ -37,6 +47,11 @@ const DesignTableStandPage = () => {
     alert('Link copied to clipboard!');
   };
 
+  // Redirect or deny access if the user is not an admin
+  if (!user || user.role !== 'admin') {
+    return <Navigate to="/" replace />; // Alternatively, show a message: return <div>Access Denied: Admins only</div>;
+  }
+
   return (
     <Layout>
       <motion.div
@@ -47,7 +62,7 @@ const DesignTableStandPage = () => {
       >
         {/* Intro Section */}
         <div className="text-center max-w-2xl mx-auto mb-8 mt-10">
-          <h1 className="text-4xl font-extrabold mb-6 text-gradient bg-gradient-to-r from-blue-500 to-purple-500 text-transparent bg-clip-text">
+          <h1 className="text-4xl font-extrabold mb-6 text-gradient">
             Design Your Table Stand QR Code
           </h1>
           <p className="text-lg text-gray-300">
@@ -124,7 +139,7 @@ const DesignTableStandPage = () => {
               />
               <button
                 onClick={handleCopyLink}
-                className="py-2 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-300"
+                className="button bg-blue-500 hover:bg-blue-600"
               >
                 Copy
               </button>
@@ -134,7 +149,7 @@ const DesignTableStandPage = () => {
           <div className="text-center">
             <button
               onClick={handleQRCodeDownload}
-              className="py-3 px-8 bg-gradient-to-r from-yellow-500 to-orange-600 text-white rounded-lg shadow-lg hover:from-yellow-600 hover:to-orange-700 transition duration-300"
+              className="button bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700"
             >
               Download QR Code
             </button>

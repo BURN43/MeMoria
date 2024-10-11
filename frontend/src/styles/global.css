@@ -1,0 +1,153 @@
+/* Define CSS Variables for base colors and theming */
+:root {
+  --primary-color: #3b82f6; /* blue-500 */
+  --secondary-color: #8b5cf6; /* purple-600 */
+  --accent-color: #f59e0b; /* amber-500 */
+  --bg-dark: #1f2937; /* gray-900 */
+  --bg-light: #ffffff;
+  --text-light: #e5e7eb; /* gray-200 */
+  --text-dark: #374151; /* gray-700 */
+  --bg-card: rgb(40, 51, 67, 0.8); /* gray-800 with transparency */
+}
+
+/* Base Styles */
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--bg-dark);
+  color: var(--text-light);
+  line-height: 1.6;
+}
+
+h1, .heading-xl {
+  font-size: 1.875rem; /* 30px */
+  font-weight: bold;
+  line-height: 1.2;
+}
+
+h2, .heading-lg {
+  font-size: 1.5rem; /* 24px */
+  font-weight: bold;
+  line-height: 1.3;
+}
+
+p, .text-base {
+  font-size: 1rem;
+  color: var(--text-light);
+  line-height: 1.6;
+}
+
+a {
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+/* Card and Overlay Styles */
+.bg-card {
+  background-color: var(--bg-card);
+  border-radius: 0.5rem; /* Ensure consistent rounding */
+  padding: 1rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px); /* Apply blur to emphasize modern design */
+}
+
+/* Responsive Layouts */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.grid-cols-1 {
+  grid-template-columns: repeat(1, 1fr);
+}
+
+.md\:grid-cols-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.md\:grid-cols-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+/* Utility Classes */
+.text-gradient {
+  background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.button {
+  display: inline-block;
+  padding: 0.75rem 2rem;
+  color: #fff;
+  border-radius: 9999px;
+  background-image: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+  transition: transform 0.3s ease, background 0.3s ease;
+  cursor: pointer;
+  text-align: center;
+}
+
+.button:hover {
+  transform: scale(1.05);
+}
+
+.input, textarea {
+  width: 100%;
+  padding: 0.75rem;
+  margin: 0.5rem 0;
+  border: 1px solid var(--text-dark);
+  border-radius: 0.375rem;
+  background-color: var(--bg-dark);
+  color: var(--text-light);
+}
+
+.input:focus, textarea:focus {
+  border-color: var(--primary-color);
+  outline: none;
+}
+
+.checkbox {
+  width: 1.5rem;
+  height: 1.5rem;
+  accent-color: var(--primary-color);
+}
+
+/* Mobile-first Media Queries */
+@media (min-width: 768px) {
+  .md\:text-lg {
+    font-size: 1.125rem; /* 18px */
+  }
+  .md\:p-8 {
+    padding: 2rem; 
+  }
+}
+
+@media (min-width: 1024px) {
+  .lg\:text-xl {
+    font-size: 1.25rem; /* 20px */
+  }
+}
+
+/* Future-proofing for Theme Switching */
+[data-theme="light"] {
+  --primary-color: #2563eb; /* Custom light theme primary color */
+  --secondary-color: #9333ea; /* Custom light theme secondary color */
+  --bg-dark: var(--bg-light);
+  --text-light: var(--text-dark);
+}
+
+[data-theme="dark"] {
+  /* Default colors are already set for dark theme */
+}

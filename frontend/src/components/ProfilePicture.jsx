@@ -1,20 +1,64 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaPlus } from 'react-icons/fa';
+import axios from 'axios';
 
-const ProfilePicture = ({ profilePic, isAdmin, handleProfilePicUpload }) => {
+// Inline Spinner component
+const Spinner = () => (
+  <div className="flex justify-center items-center">
+    <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-purple-500"></div>
+  </div>
+);
+
+const ProfilePicture = ({ isAdmin, userId }) => {
+  const [profilePic, setProfilePic] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const handleUpload = (event) => {
+  useEffect(() => {
+    fetchProfilePicture();
+  }, [userId]);
+
+  const fetchProfilePicture = async () => {
+    try {
+      const response = await axios.get('/api/profile-picture/profile', {
+        withCredentials: true
+      });
+      setProfilePic(response.data.profilePicUrl);
+    } catch (error) {
+      console.error('Error fetching profile picture:', error);
+      setError('Failed to load profile picture');
+    }
+  };
+
+  const handleUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
     setLoading(true);
-    handleProfilePicUpload(event);
-    setLoading(false);
+    setError(null);
+
+    const formData = new FormData();
+    formData.append('profilePic', file);
+
+    try {
+      const response = await axios.post('/api/profile-picture/profile', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        withCredentials: true
+      });
+      setProfilePic(response.data.profilePicUrl);
+    } catch (error) {
+      console.error('Error uploading profile picture:', error);
+      setError('Failed to upload profile picture');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="relative w-40 h-40 mx-auto mb-6">
       {loading ? (
         <div className="w-40 h-40 flex items-center justify-center">
-          <Spinner /> {/* Add a spinner component for loading state */}
+          <Spinner />
         </div>
       ) : profilePic ? (
         <div className="relative">
@@ -28,6 +72,7 @@ const ProfilePicture = ({ profilePic, isAdmin, handleProfilePicUpload }) => {
               <span className="text-purple-600 text-sm">Profilbild ändern</span>
               <input
                 type="file"
+                accept="image/*"
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 onChange={handleUpload}
               />
@@ -40,6 +85,7 @@ const ProfilePicture = ({ profilePic, isAdmin, handleProfilePicUpload }) => {
             <label className="relative flex flex-col items-center justify-center w-full cursor-pointer aspect-square bg-purple-200 rounded-full border-2 border-dashed border-purple-600">
               <input
                 type="file"
+                accept="image/*"
                 className="absolute z-10 w-full h-full opacity-0 cursor-pointer"
                 onChange={handleUpload}
               />
@@ -55,6 +101,7 @@ const ProfilePicture = ({ profilePic, isAdmin, handleProfilePicUpload }) => {
           )}
         </div>
       )}
+      {error && <div className="text-red-500 text-sm mt-2">{error}</div>}
     </div>
   );
 };

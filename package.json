@@ -13,6 +13,9 @@
 	"type": "module",
 	"license": "ISC",
 	"dependencies": {
+		"@aws-sdk/client-s3": "^3.665.0",
+		"@use-gesture/react": "^10.3.1",
+		"aws-sdk": "^2.1691.0",
 		"bcryptjs": "^2.4.3",
 		"cookie-parser": "^1.4.6",
 		"cors": "^2.8.5",
@@ -30,10 +33,12 @@
 		"react-hot-toast": "^2.4.1",
 		"react-icons": "^5.3.0",
 		"react-redux": "^8.0.5",
+		"react-spring": "^9.7.4",
 		"redis": "^4.7.0",
 		"redux": "^4.2.1",
 		"redux-devtools-extension": "^2.13.9",
 		"redux-thunk": "^2.3.0",
+		"sharp": "^0.33.5",
 		"uuid": "^10.0.0",
 		"validate-image-type": "^3.0.0"
 	},

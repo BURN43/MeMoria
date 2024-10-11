@@ -1,25 +1,26 @@
-import { Navigate, Route, Routes } from "react-router-dom";
-import FloatingShape from "./components/FloatingShape";
+import React, { useEffect } from 'react';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import NavBar from './components/NavBar'; // Existing NavBar for authenticated users
+import GuestNavBar from './components/GuestNavBar'; // New NavBar for token-based access
+import { useAuthStore } from './store/authStore';
 
-import SignUpPage from "./pages/SignUpPage";
-import SettingsPage from './pages/SettingsPage';  
-import LoginPage from "./pages/LoginPage";
-import EmailVerificationPage from "./pages/EmailVerificationPage";
-import DashboardPage from "./pages/DashboardPage";
-import ForgotPasswordPage from "./pages/ForgotPasswordPage";
-import ResetPasswordPage from "./pages/ResetPasswordPage";
-
+import SignUpPage from './pages/SignUpPage';
+import SettingsPage from './pages/SettingsPage';
+import LoginPage from './pages/LoginPage';
+import EmailVerificationPage from './pages/EmailVerificationPage';
+import DashboardPage from './pages/DashboardPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 import DesignTableStandPage from './pages/DesignTableStandPage';
 import PhotoChallengePage from './pages/PhotoChallengePage';
 import GuestChallengeView from './pages/GuestChallengeView';
-import AlbumPage from './pages/AlbumPage';
-import { Toaster } from "react-hot-toast";
-import { useAuthStore } from "./store/authStore";
-import { useEffect } from "react";
+import AlbumWithToken from './pages/AlbumWithToken'; // Import custom component
+import './styles/global.css';
+import { Toaster } from 'react-hot-toast';
 
 
-// protect routes that require authentication
-const ProtectedRoute = ({ children }) => {
+// Admin Protected Route
+const AdminProtectedRoute = ({ children }) => {
 	const { isAuthenticated, user } = useAuthStore();
 
 	if (!isAuthenticated) {
@@ -30,10 +31,14 @@ const ProtectedRoute = ({ children }) => {
 		return <Navigate to='/verify-email' replace />;
 	}
 
+	if (user.role !== 'admin') {
+		return <div>Access Denied: Admins only</div>;
+	}
+
 	return children;
 };
 
-// redirect authenticated users to the home page
+// Redirect Authenticated User
 const RedirectAuthenticatedUser = ({ children }) => {
 	const { isAuthenticated, user } = useAuthStore();
 
@@ -44,73 +49,67 @@ const RedirectAuthenticatedUser = ({ children }) => {
 	return children;
 };
 
-
-
 function App() {
-	const { isCheckingAuth, checkAuth } = useAuthStore();
+	const { checkAuth, user, isAuthenticated } = useAuthStore();
+	const location = useLocation();
+	const query = new URLSearchParams(location.search);
+	const albumToken = query.get('token');
 
 	useEffect(() => {
-		checkAuth();
-	}, [checkAuth]);
+		if (!albumToken) {
+			// Only check authentication if there is no album token
+			checkAuth();
+		}
+	}, [checkAuth, albumToken]);
 
 	return (
 		<div
 			className='min-h-screen bg-gradient-to-br
-		from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center relative overflow-hidden'
+				from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center relative overflow-hidden'
 		>
-			<FloatingShape color='bg-purple-500' size='w-64 h-64' top='-5%' left='10%' delay={0} />
-			<FloatingShape color='bg-blue-500' size='w-48 h-48' top='70%' left='80%' delay={5} />
-			<FloatingShape color='bg-purple-500' size='w-32 h-32' top='40%' left='-10%' delay={2} />
+			{albumToken ? <GuestNavBar /> : isAuthenticated && <NavBar />}
 
 			<Routes>
 				<Route
 					path='/'
 					element={
-						<ProtectedRoute>
+						<AdminProtectedRoute>
 							<DashboardPage />
-						</ProtectedRoute>
+						</AdminProtectedRoute>
 					}
-				/>			
+				/>
 				<Route
 					path='/settings'
 					element={
-					<ProtectedRoute>
-						<SettingsPage />  
-					</ProtectedRoute>
+						<AdminProtectedRoute>
+							<SettingsPage />
+						</AdminProtectedRoute>
 					}
 				/>
 				<Route
 					path='/album'
-					element={
-						<ProtectedRoute>
-							<AlbumPage/>
-						</ProtectedRoute>
-					}
-				/>	
+					element={<AlbumWithToken />} // Accessible without admin privileges
+				/>
 				<Route
 					path='/photo-challenge'
 					element={
-						<ProtectedRoute>
+						<AdminProtectedRoute>
 							<PhotoChallengePage />
-						</ProtectedRoute>
+						</AdminProtectedRoute>
 					}
-				/>		
+				/>
 				<Route
-					path='/guest-challange'
-					element={
-						<ProtectedRoute>
-							<GuestChallengeView />
-						</ProtectedRoute>
-					}
-				/>	
+					path='/guest-challenge'
+					element={<GuestChallengeView />} // Accessible without admin privileges
+				/>
 				<Route
 					path='/design-table-stand'
 					element={
-						<ProtectedRoute>
+						<AdminProtectedRoute>
 							<DesignTableStandPage />
-						</ProtectedRoute>
+						</AdminProtectedRoute>
 					}
-				/>						
+				/>
 				<Route
 					path='/signup'
 					element={
@@ -128,7 +127,6 @@ function App() {
 					}
 				/>
 				<Route path='/verify-email' element={<EmailVerificationPage />} />
-
 				<Route
 					path='/forgot-password'
 					element={
@@ -137,7 +135,6 @@ function App() {
 						</RedirectAuthenticatedUser>
 					}
 				/>
-
 				<Route
 					path='/reset-password/:token'
 					element={
@@ -146,7 +143,7 @@ function App() {
 						</RedirectAuthenticatedUser>
 					}
 				/>
-				{/* catch all routes */}
+				{/* Catch-all route */}
 				<Route path='*' element={<Navigate to='/' replace />} />
 			</Routes>
 			<Toaster />

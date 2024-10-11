@@ -6,31 +6,33 @@ const router = express.Router();
 // Toggle like status
 router.post('/like/:mediaId', async (req, res) => {
   const { mediaId } = req.params;
-  const { userId, guestSession } = req.body;
-  let identifier = userId || guestSession;
+  const { userId, username } = req.body; // Use userId for registered users and username for guests
+  const identifier = userId || username;
 
   if (!identifier) {
-    return res.status(400).json({ message: 'No identifier provided.' });
+    return res.status(400).json({ message: 'Identifier (userId/username) must be provided.' });
   }
 
   try {
     const media = await AlbumMedia.findById(mediaId);
     if (!media) return res.status(404).json({ message: 'Media not found' });
 
-    const alreadyLiked = media.likes.includes(identifier);
+    const likeIndex = media.likes.indexOf(identifier);
 
-    if (alreadyLiked) {
-      media.likes = media.likes.filter((id) => id !== identifier);
-      media.likeCount = media.likes.length;
-    } else {
+    if (likeIndex === -1) {
+      // Add like for the user
       media.likes.push(identifier);
-      media.likeCount = media.likes.length;
+    } else {
+      // Remove like for the user
+      media.likes.splice(likeIndex, 1);
     }
 
-    await media.save();
-    res.json({ likeCount: media.likeCount });
+    // Save the changes and return the updated like count
+    const savedMedia = await media.save();
+    res.status(200).json({ likeCount: savedMedia.likes.length });
   } catch (error) {
-    res.status(500).json({ message: 'Server error while toggling like.' });
+    console.error('Error toggling like:', error);
+    res.status(500).json({ message: 'Failed to toggle like. Please try again later.' });
   }
 });
 
