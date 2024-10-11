@@ -13,6 +13,7 @@ import likeRoutes from './routes/like.route.js';
 import s3TestRoute from './routes/s3Test.route.js';
 import userRoutes from './routes/userRoutes.js';
 import profilePictureRoutes from './routes/profilePicture.route.js';
+import commentsRouter from './routes/comments.route.js';
 
 dotenv.config();
 
@@ -34,6 +35,7 @@ app.use("/api/settings", settingsRoutes);
 app.use('/api/s3-test', s3TestRoute);
 
 
+app.use('/api/comments', commentsRouter);
 
 // Use the upload route
 app.use('/api/profile-picture', profilePictureRoutes);

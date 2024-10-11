@@ -66,14 +66,12 @@ const MediaModal = ({
   const [loading, setLoading] = useState(false);
   const [showUsernameModal, setShowUsernameModal] = useState(false);
 
-  // Sort media from newest to oldest
-  const sortedMedia = useMemo(() => {
-    return [...media].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-  }, [media]);
+  // Reverse the order of media for display in the modal
+  const reversedMedia = useMemo(() => [...media].reverse(), [media]);
 
   useEffect(() => {
-    if (selectedMedia && sortedMedia.length > 0) {
-      const initialIndex = sortedMedia.findIndex((item) => item._id === selectedMedia._id);
+    if (selectedMedia && reversedMedia.length > 0) {
+      const initialIndex = reversedMedia.findIndex((item) => item._id === selectedMedia._id);
       setCurrentIndex(initialIndex >= 0 ? initialIndex : 0);
 
       // Scroll to the selected media item
@@ -86,7 +84,7 @@ const MediaModal = ({
     return () => {
       document.body.style.overflow = 'auto';
     };
-  }, [selectedMedia, sortedMedia]);
+  }, [selectedMedia, reversedMedia]);
 
   const toggleLike = useCallback(async (mediaId, username) => {
     if (!username.trim()) {
@@ -98,18 +96,18 @@ const MediaModal = ({
     try {
       const response = await axios.post(`${API_URL}/like/${mediaId}`, { guestSession: username });
       // Update the likes count in the media array
-      const updatedMedia = sortedMedia.map(item => 
+      const updatedMedia = reversedMedia.map(item => 
         item._id === mediaId ? { ...item, likes: response.data.likes } : item
       );
       // You need to have a function to update the media array in the parent component
-      // updateMedia(updatedMedia);
+      // updateMedia(updatedMedia.reverse());
       setShowUsernameModal(false);
     } catch (error) {
       console.error('Error toggling like:', error);
       alert('Failed to toggle like, please try again.');
     }
     setLoading(false);
-  }, [sortedMedia]);
+  }, [reversedMedia]);
 
   const handleCommentSubmit = useCallback(async (mediaId, comment, setNewComment) => {
     setLoading(true);
@@ -129,15 +127,15 @@ const MediaModal = ({
 
   const handleScroll = useCallback((e) => {
     const index = Math.round(e.target.scrollTop / window.innerHeight);
-    if (index !== currentIndex && index >= 0 && index < sortedMedia.length) {
+    if (index !== currentIndex && index >= 0 && index < reversedMedia.length) {
       setCurrentIndex(index);
     }
-  }, [currentIndex, sortedMedia.length]);
+  }, [currentIndex, reversedMedia.length]);
 
-  const currentMedia = useMemo(() => sortedMedia[currentIndex], [sortedMedia, currentIndex]);
+  const currentMedia = useMemo(() => reversedMedia[currentIndex], [reversedMedia, currentIndex]);
   const commentCount = useMemo(() => currentMedia ? comments[currentMedia._id]?.length || 0 : 0, [comments, currentMedia]);
 
-  if (!sortedMedia || sortedMedia.length === 0) return null;
+  if (!reversedMedia || reversedMedia.length === 0) return null;
 
   return (
     <div className="fixed inset-0 z-[200] bg-black">
@@ -146,7 +144,7 @@ const MediaModal = ({
         className="w-full h-full overflow-y-scroll snap-y snap-mandatory"
         onScroll={handleScroll}
       >
-        {sortedMedia.map((item, index) => (
+        {reversedMedia.map((item, index) => (
           <div key={item._id} className="w-screen h-screen snap-always snap-center">
             <div className="relative w-full h-full flex items-center justify-center bg-gray-900 overflow-hidden">
               <MediaContent

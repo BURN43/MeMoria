@@ -195,7 +195,8 @@ const AlbumPage = () => {
           headers,
           withCredentials: true,
         });
-        setMedia(response.data.media || []);
+        const sortedMedia = (response.data.media || []).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        setMedia(sortedMedia);
 
         const settingsResponse = await axios.get(`${API_URL}/settings${queryParam || ''}`, {
           headers,
@@ -259,9 +260,10 @@ const AlbumPage = () => {
       });
 
       const newMedia = {
-        id: response.data._id,
+        _id: response.data._id,
         mediaUrl: response.data.mediaUrl,
         title: file.name,
+        createdAt: new Date().toISOString(),
       };
       setMedia((prevMedia) => [newMedia, ...prevMedia]);
     } catch (error) {
@@ -306,7 +308,7 @@ const AlbumPage = () => {
   const loadMoreMedia = async () => {
     try {
       setLoading(true);
-      const lastMediaId = media[media.length - 1].id;
+      const lastMediaId = media[media.length - 1]._id;
       let url = `${API_URL}/album-media/load-more`;
       let headers = {};
       let params = { 
@@ -321,7 +323,11 @@ const AlbumPage = () => {
       }
 
       const response = await axios.get(url, { params, headers });
-      setMedia((prevMedia) => [...prevMedia, ...response.data.media]);
+      const newMedia = response.data.media;
+      setMedia((prevMedia) => {
+        const updatedMedia = [...prevMedia, ...newMedia];
+        return updatedMedia.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      });
     } catch (error) {
       console.error('Failed to load more media:', error);
     } finally {
@@ -367,7 +373,7 @@ const AlbumPage = () => {
             handleFileUpload={handleMediaUpload}
             openModal={openModal}
             loading={loading || isUploading}
-            canUpload={canUpload()} // Pass the result of canUpload function
+            canUpload={canUpload()}
             infiniteScroll={true}
             loadMoreMedia={loadMoreMedia}
             isAdmin={isAuthenticated && user?.role === 'admin'}
