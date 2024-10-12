@@ -17,6 +17,9 @@ import s3TestRoute from './routes/s3Test.route.js';
 import userRoutes from './routes/userRoutes.js';
 import profilePictureRoutes from './routes/profilePicture.route.js';
 import commentsRouter from './routes/comments.route.js';
+import stripeRoutes from './routes/stripeRoutes.js';
+
+
 
 dotenv.config();
 
@@ -55,6 +58,11 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/challenges', challengeRoutes);
 app.use('/api', likeRoutes);
 app.use('/api/user', userRoutes);
+
+
+// Stripe Payment Routes
+app.use('/api/stripe', stripeRoutes);
+
 
 // Socket.IO events
 socketEvents(io);

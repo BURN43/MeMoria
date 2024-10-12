@@ -37,11 +37,43 @@ const userSchema = new mongoose.Schema({
     default: uuidv4,
   },
   profilePicUrl: { type: String },
+  // Neue Felder für Paketinformationen
+  package: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Package',
+    default: null
+  },
+  packageExpiryDate: {
+    type: Date,
+    default: null
+  },
+  // Zähler für die Nutzung verschiedener Features
+  photoCount: {
+    type: Number,
+    default: 0
+  },
+  videoCount: {
+    type: Number,
+    default: 0
+  },
+  albumCount: {
+    type: Number,
+    default: 0
+  },
+  fullAlbumDownloadsCount: {
+    type: Number,
+    default: 0
+  },
+  guestCount: {
+    type: Number,
+    default: 0
+  }
 }, { timestamps: true });
 
 // Indexing for performance
 userSchema.index({ albumToken: 1 });
 userSchema.index({ albumId: 1 });
 userSchema.index({ profilePicUrl: 1 });
+userSchema.index({ package: 1 });
 
 export const User = mongoose.model('User', userSchema);

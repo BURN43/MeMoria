@@ -2,6 +2,10 @@ import React, { useEffect, useState, lazy, Suspense, useCallback } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
 import { Toaster } from 'react-hot-toast';
+import { Elements } from '@stripe/react-stripe-js';
+import stripePromise from './Stripe/Stripe';
+
+import './styles/global.css';
 
 // Lazy load components
 const NavBar = lazy(() => import('./components/NavBar'));
@@ -18,8 +22,8 @@ const PhotoChallengePage = lazy(() => import('./pages/PhotoChallengePage'));
 const GuestChallengeView = lazy(() => import('./pages/GuestChallengeView'));
 const AlbumWithToken = lazy(() => import('./pages/AlbumWithToken'));
 const PaketErweitern = lazy(() => import('./pages/PaketErweitern'));
-
-import './styles/global.css';
+const PaymentSuccessPage = lazy(() => import('./pages/PaymentSuccessPage'));
+const PaymentCancelPage = lazy(() => import('./pages/PaymentCancelPage'));
 
 // Loading component
 const Loading = React.memo(() => <div>Loading...</div>);
@@ -75,28 +79,32 @@ function App() {
 	}
 
 	return (
-		<div className='min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center relative overflow-hidden'>
-			<Suspense fallback={<Loading />}>
-				{albumToken ? <GuestNavBar /> : isAuthenticated && <NavBar />}
+		<Elements stripe={stripePromise}>
+			<div className='min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center relative overflow-hidden'>
+				<Suspense fallback={<Loading />}>
+					{albumToken ? <GuestNavBar /> : isAuthenticated && <NavBar />}
 
-				<Routes>
-					<Route path='/' element={<AdminProtectedRoute><DashboardPage /></AdminProtectedRoute>} />
-					<Route path='/settings' element={<AdminProtectedRoute><SettingsPage /></AdminProtectedRoute>} />
-					<Route path='/album' element={<AlbumWithToken />} />
-					<Route path='/photo-challenge' element={<AdminProtectedRoute><PhotoChallengePage /></AdminProtectedRoute>} />
-					<Route path='/guest-challenge' element={<GuestChallengeView />} />
-					<Route path='/design-table-stand' element={<AdminProtectedRoute><DesignTableStandPage /></AdminProtectedRoute>} />
-					<Route path='/paket-erweitern' element={<AdminProtectedRoute><PaketErweitern /></AdminProtectedRoute>} />
-					<Route path='/signup' element={<RedirectAuthenticatedUser><SignUpPage /></RedirectAuthenticatedUser>} />
-					<Route path='/login' element={<RedirectAuthenticatedUser><LoginPage /></RedirectAuthenticatedUser>} />
-					<Route path='/verify-email' element={<EmailVerificationPage />} />
-					<Route path='/forgot-password' element={<RedirectAuthenticatedUser><ForgotPasswordPage /></RedirectAuthenticatedUser>} />
-					<Route path='/reset-password/:token' element={<RedirectAuthenticatedUser><ResetPasswordPage /></RedirectAuthenticatedUser>} />
-					<Route path='*' element={<Navigate to='/' replace />} />
-				</Routes>
-			</Suspense>
-			<Toaster />
-		</div>
+					<Routes>
+						<Route path='/' element={<AdminProtectedRoute><DashboardPage /></AdminProtectedRoute>} />
+						<Route path='/settings' element={<AdminProtectedRoute><SettingsPage /></AdminProtectedRoute>} />
+						<Route path='/album' element={<AlbumWithToken />} />
+						<Route path='/photo-challenge' element={<AdminProtectedRoute><PhotoChallengePage /></AdminProtectedRoute>} />
+						<Route path='/guest-challenge' element={<GuestChallengeView />} />
+						<Route path='/design-table-stand' element={<AdminProtectedRoute><DesignTableStandPage /></AdminProtectedRoute>} />
+						<Route path='/paket-erweitern' element={<AdminProtectedRoute><PaketErweitern /></AdminProtectedRoute>} />
+						<Route path='/signup' element={<RedirectAuthenticatedUser><SignUpPage /></RedirectAuthenticatedUser>} />
+						<Route path='/login' element={<RedirectAuthenticatedUser><LoginPage /></RedirectAuthenticatedUser>} />
+						<Route path='/verify-email' element={<EmailVerificationPage />} />
+						<Route path='/forgot-password' element={<RedirectAuthenticatedUser><ForgotPasswordPage /></RedirectAuthenticatedUser>} />
+						<Route path='/reset-password/:token' element={<RedirectAuthenticatedUser><ResetPasswordPage /></RedirectAuthenticatedUser>} />
+						<Route path='/payment-success' element={<AdminProtectedRoute><PaymentSuccessPage /></AdminProtectedRoute>} />
+						<Route path='/payment-cancel' element={<AdminProtectedRoute><PaymentCancelPage /></AdminProtectedRoute>} />
+						<Route path='*' element={<Navigate to='/' replace />} />
+					</Routes>
+				</Suspense>
+				<Toaster />
+			</div>
+		</Elements>
 	);
 }
 
