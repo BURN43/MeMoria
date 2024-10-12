@@ -169,12 +169,12 @@ const MediaGrid = ({
   const fileInputRef = useRef(null);
   const observerRef = useRef(null);
 
-  // Sort media from newest to oldest
   const sortedMedia = useMemo(() => {
-    return [...media].sort((a, b) => {
-      return new Date(b.uploadedAt || b.createdAt).getTime() - new Date(a.uploadedAt || a.createdAt).getTime();
-    });
+    return [...media].sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
   }, [media]);
+
+
+
 
   const handleFileChange = useCallback((e) => {
     if (e.target.files.length > 0) {

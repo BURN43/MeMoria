@@ -17,6 +17,7 @@ const DesignTableStandPage = lazy(() => import('./pages/DesignTableStandPage'));
 const PhotoChallengePage = lazy(() => import('./pages/PhotoChallengePage'));
 const GuestChallengeView = lazy(() => import('./pages/GuestChallengeView'));
 const AlbumWithToken = lazy(() => import('./pages/AlbumWithToken'));
+const PaketErweitern = lazy(() => import('./pages/PaketErweitern'));
 
 import './styles/global.css';
 
@@ -85,6 +86,7 @@ function App() {
 					<Route path='/photo-challenge' element={<AdminProtectedRoute><PhotoChallengePage /></AdminProtectedRoute>} />
 					<Route path='/guest-challenge' element={<GuestChallengeView />} />
 					<Route path='/design-table-stand' element={<AdminProtectedRoute><DesignTableStandPage /></AdminProtectedRoute>} />
+					<Route path='/paket-erweitern' element={<AdminProtectedRoute><PaketErweitern /></AdminProtectedRoute>} />
 					<Route path='/signup' element={<RedirectAuthenticatedUser><SignUpPage /></RedirectAuthenticatedUser>} />
 					<Route path='/login' element={<RedirectAuthenticatedUser><LoginPage /></RedirectAuthenticatedUser>} />
 					<Route path='/verify-email' element={<EmailVerificationPage />} />

@@ -6,6 +6,8 @@ import { motion } from 'framer-motion';
 import Layout from '../components/Layout';
 import { FaPlus } from 'react-icons/fa';
 import { debounce } from 'lodash';
+import io from 'socket.io-client';
+
 
 const API_URL = import.meta.env.MODE === 'development'
   ? 'https://e7ea99a1-f3aa-439b-97db-82d9e87187ed-00-1etsckkyhp4f3.spock.replit.dev:5000/api'
@@ -22,7 +24,7 @@ const Spinner = () => (
   </div>
 );
 
-// Optimized ProfilePicture component with local storage caching
+// ProfilePicture component
 const ProfilePicture = React.memo(({ isAdmin, userId, guestAlbumToken }) => {
   const [profilePic, setProfilePic] = useState(() => localStorage.getItem('profilePicUrl'));
   const [loading, setLoading] = useState(false);
@@ -87,11 +89,20 @@ const ProfilePicture = React.memo(({ isAdmin, userId, guestAlbumToken }) => {
         </div>
       ) : profilePic ? (
         <div className="relative">
-          <img src={profilePic} className="w-40 h-40 rounded-full object-cover object-center border-4 border-white shadow-lg" alt="Profile" />
+          <img
+            src={profilePic}
+            className="w-40 h-40 rounded-full object-cover object-center border-4 border-white shadow-lg"
+            alt="Profile"
+          />
           {isAdmin && (
             <div className="absolute inset-0 flex items-center justify-center bg-purple-200 bg-opacity-75 rounded-full opacity-0 hover:opacity-100 transition-opacity duration-300">
               <span className="text-purple-600 text-sm">Change Profile Picture</span>
-              <input type="file" accept="image/*" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onChange={handleUpload} />
+              <input
+                type="file"
+                accept="image/*"
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                onChange={handleUpload}
+              />
             </div>
           )}
         </div>
@@ -99,12 +110,21 @@ const ProfilePicture = React.memo(({ isAdmin, userId, guestAlbumToken }) => {
         <div>
           {isAdmin ? (
             <label className="relative flex flex-col items-center justify-center w-full cursor-pointer aspect-square bg-purple-200 rounded-full border-2 border-dashed border-purple-600">
-              <input type="file" accept="image/*" className="absolute z-10 w-full h-full opacity-0 cursor-pointer" onChange={handleUpload} />
+              <input
+                type="file"
+                accept="image/*"
+                className="absolute z-10 w-full h-full opacity-0 cursor-pointer"
+                onChange={handleUpload}
+              />
               <FaPlus className="text-3xl text-purple-600" />
               <div className="mt-1 text-xs text-purple-600">Add Profile Picture</div>
             </label>
           ) : (
-            <img src="/default-profile.png" className="w-40 h-40 rounded-full object-cover object-center border-4 border-white shadow-lg" alt="Default Profile" />
+            <img
+              src="/default-profile.png"
+              className="w-40 h-40 rounded-full object-cover object-center border-4 border-white shadow-lg"
+              alt="Default Profile"
+            />
           )}
         </div>
       )}
@@ -137,12 +157,80 @@ const AlbumPage = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [redirectToLogin, setRedirectToLogin] = useState(false);
+  const [socket, setSocket] = useState(null);
 
   const canUpload = useMemo(() => {
     if (isAuthenticated && user?.role === 'admin') return true;
     if (guestAlbumToken && (albumData.guestUploadsImage || albumData.guestUploadsVideo)) return true;
     return false;
   }, [isAuthenticated, user, guestAlbumToken, albumData.guestUploadsImage, albumData.guestUploadsVideo]);
+
+  useEffect(() => {
+    const newSocket = io(API_URL);
+    setSocket(newSocket);
+
+    const handleReconnect = () => {
+      console.log('WebSocket reconnected');
+      fetchAlbumData(true);
+    };
+
+    newSocket.on('connect', handleReconnect);
+    newSocket.on('settings_updated', handleSettingsUpdate);
+    newSocket.on('settings_deleted', handleSettingsDelete);
+    newSocket.on('media_uploaded', handleMediaUploaded);
+    newSocket.on('media_deleted', handleMediaDeleted);
+
+    return () => {
+      newSocket.off('connect', handleReconnect);
+      newSocket.off('settings_updated', handleSettingsUpdate);
+      newSocket.off('settings_deleted', handleSettingsDelete);
+      newSocket.off('media_uploaded', handleMediaUploaded);
+      newSocket.off('media_deleted', handleMediaDeleted);
+      newSocket.close();
+    };
+  }, []);
+
+  const handleSettingsUpdate = useCallback((updatedSettings) => {
+    setAlbumData(prevData => {
+      const newData = {
+        ...prevData,
+        title: updatedSettings.albumTitle || 'Album',
+        greetingText: updatedSettings.greetingText || 'Welcome to the album!',
+        guestUploadsImage: updatedSettings.GuestUploadsImage || false,
+        guestUploadsVideo: updatedSettings.GuestUploadsVideo || false,
+      };
+      localStorage.setItem('albumData', JSON.stringify(newData));
+      return newData;
+    });
+  }, []);
+
+  const handleSettingsDelete = useCallback(() => {
+    setAlbumData(prevData => {
+      const newData = {
+        ...prevData,
+        title: 'Album',
+        greetingText: 'Welcome to the album!',
+        guestUploadsImage: false,
+        guestUploadsVideo: false,
+      };
+      localStorage.removeItem('albumData');
+      return newData;
+    });
+  }, []);
+
+  const handleMediaUploaded = useCallback((newMedia) => {
+    setAlbumData(prevData => ({
+      ...prevData,
+      media: [newMedia, ...prevData.media].sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt))
+    }));
+  }, []);
+
+  const handleMediaDeleted = useCallback((deletedMediaId) => {
+    setAlbumData(prevData => ({
+      ...prevData,
+      media: prevData.media.filter(item => item._id !== deletedMediaId)
+    }));
+  }, []);
 
   const fetchAlbumIdFromToken = useCallback(async (token) => {
     if (!token) return null;
@@ -164,8 +252,20 @@ const AlbumPage = () => {
     }
   }, []);
 
-  const fetchAlbumData = useCallback(async () => {
+  const fetchAlbumData = useCallback(async (force = false) => {
     if (!isAuthenticated && !guestAlbumToken) return;
+
+    const now = Date.now();
+    const lastFetchTime = localStorage.getItem('lastAlbumDataFetchTime');
+
+    if (!force && lastFetchTime && now - parseInt(lastFetchTime) < 5 * 60 * 1000) {
+      const cachedData = localStorage.getItem('albumData');
+      if (cachedData) {
+        setAlbumData(JSON.parse(cachedData));
+        setLoadingSettings(false);
+        return;
+      }
+    }
 
     try {
       setLoadingSettings(true);
@@ -182,14 +282,6 @@ const AlbumPage = () => {
       if (!currentAlbumId) {
         throw new Error('Unable to determine album ID');
       }
-      const cachedData = localStorage.getItem('albumData');
-      const cachedTimestamp = localStorage.getItem('albumDataTimestamp');
-      const now = Date.now();
-      if (cachedData && cachedTimestamp && now - parseInt(cachedTimestamp) < 60000) {
-        setAlbumData(JSON.parse(cachedData));
-        setLoadingSettings(false);
-        return;
-      }
       const [mediaResponse, settingsResponse] = await Promise.all([
         axios.get(`${API_URL}/album-media/media/${currentAlbumId}${queryParam || ''}`, {
           headers,
@@ -201,7 +293,7 @@ const AlbumPage = () => {
         })
       ]);
       const sortedMedia = (mediaResponse.data.media || [])
-        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt))
         .map(item => ({
           ...item,
           challengeTitle: item.challengeTitle || '',
@@ -217,7 +309,7 @@ const AlbumPage = () => {
       };
       setAlbumData(newAlbumData);
       localStorage.setItem('albumData', JSON.stringify(newAlbumData));
-      localStorage.setItem('albumDataTimestamp', now.toString());
+      localStorage.setItem('lastAlbumDataFetchTime', now.toString());
     } catch (error) {
       console.error('Failed to load album data:', error);
       setErrorMessage('Failed to load album data: ' + (error.response?.data?.message || error.message));
@@ -230,7 +322,7 @@ const AlbumPage = () => {
     if (!isAuthenticated && !guestAlbumToken) {
       setRedirectToLogin(true);
     } else {
-      fetchAlbumData();
+      fetchAlbumData(true);
     }
   }, [isAuthenticated, guestAlbumToken, fetchAlbumData]);
 
@@ -243,9 +335,24 @@ const AlbumPage = () => {
     if (isUploading) return;
     setIsUploading(true);
     setUploadProgress(0);
+
+    const optimisticMedia = {
+      _id: 'temp_' + Date.now(),
+      mediaUrl: URL.createObjectURL(file),
+      title: file.name,
+      uploadedAt: new Date().toISOString(),
+      challengeTitle: '',
+      uploaderUsername: user?.username || 'Guest'
+    };
+
+    setAlbumData(prevData => ({
+      ...prevData,
+      media: [optimisticMedia, ...prevData.media]
+    }));
+
     const formData = new FormData();
     formData.append('mediaFile', file);
-    setLoading(true);
+
     try {
       let url = `${API_URL}/album-media/upload-media`;
       let headers = {};
@@ -273,23 +380,34 @@ const AlbumPage = () => {
         _id: response.data._id,
         mediaUrl: response.data.mediaUrl,
         title: file.name,
-        createdAt: new Date().toISOString(),
+        uploadedAt: new Date().toISOString(),
         challengeTitle: response.data.challengeTitle || '',
         uploaderUsername: response.data.uploaderUsername || ''
       };
+
       setAlbumData(prevData => ({
         ...prevData,
-        media: [newMedia, ...prevData.media]
+        media: prevData.media.map(item => 
+          item._id === optimisticMedia._id ? newMedia : item
+        ).sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt))
       }));
+
+      if (socket && socket.connected) {
+        socket.emit('media_uploaded', newMedia);
+      }
     } catch (error) {
       console.error('Upload failed:', error);
       setErrorMessage('Failed to upload media. ' + (error.response?.data?.error || error.message));
+
+      setAlbumData(prevData => ({
+        ...prevData,
+        media: prevData.media.filter(item => item._id !== optimisticMedia._id)
+      }));
     } finally {
-      setLoading(false);
       setIsUploading(false);
       setUploadProgress(0);
     }
-  }, [canUpload, isUploading, isAuthenticated, user, guestAlbumToken]);
+  }, [canUpload, isUploading, isAuthenticated, user, guestAlbumToken, socket]);
 
   const handleDelete = useCallback(async (mediaId) => {
     if (!isAuthenticated || user?.role !== 'admin') {
@@ -297,21 +415,26 @@ const AlbumPage = () => {
       return;
     }
 
+    setAlbumData(prevData => ({
+      ...prevData,
+      media: prevData.media.filter(item => item._id !== mediaId)
+    }));
+
     try {
       await axios.delete(`${API_URL}/album-media/media/${mediaId}`, {
         headers: { Authorization: `Bearer ${user.token}` },
         withCredentials: true,
       });
-      setAlbumData(prevData => ({
-        ...prevData,
-        media: prevData.media.filter(item => item._id !== mediaId)
-      }));
-      console.log('Media deleted successfully');
+
+      if (socket && socket.connected) {
+        socket.emit('media_deleted', mediaId);
+      }
     } catch (error) {
       console.error('Error deleting media:', error);
       setErrorMessage('Failed to delete media. Please try again.');
+      fetchAlbumData(true);
     }
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, user, socket, fetchAlbumData]);
 
   const openModal = useCallback((mediaItem) => {
     setSelectedMedia(mediaItem);
@@ -348,7 +471,7 @@ const AlbumPage = () => {
       setAlbumData(prevData => {
         const updatedData = {
           ...prevData,
-          media: [...prevData.media, ...newMedia].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+          media: [...prevData.media, ...newMedia].sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt))
         };
         localStorage.setItem('albumData', JSON.stringify(updatedData));
         return updatedData;
@@ -372,7 +495,7 @@ const AlbumPage = () => {
         transition={{ duration: 0.5 }}
         className="p-4 md:p-8 pb-20"
       >
-        <div className="text-center max-w-2xl mx-auto mb-8 mt-10">
+        <div className="text-center max-w-2xl mx-auto mb-8 mt-4">
           <ProfilePicture
             isAdmin={isAuthenticated && user?.role === 'admin'}
             userId={user?._id}

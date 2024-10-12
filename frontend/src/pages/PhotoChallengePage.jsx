@@ -3,8 +3,10 @@ import axios from 'axios';
 import { motion } from 'framer-motion';
 import { useAuthStore } from '../store/authStore';
 import Layout from '../components/Layout';
+import io from 'socket.io-client';
 
-const API_URL = 'https://e7ea99a1-f3aa-439b-97db-82d9e87187ed-00-1etsckkyhp4f3.spock.replit.dev:5000/challenges';
+const API_URL = 'https://e7ea99a1-f3aa-439b-97db-82d9e87187ed-00-1etsckkyhp4f3.spock.replit.dev:5000';
+const CHALLENGES_ENDPOINT = `${API_URL}/challenges`;
 
 const PhotoChallengePage = () => {
   const { user } = useAuthStore();
@@ -12,12 +14,46 @@ const PhotoChallengePage = () => {
   const albumId = useMemo(() => user ? user.albumId : null, [user]);
   const [challenges, setChallenges] = useState([]);
   const [newTitle, setNewTitle] = useState('');
+  const [socket, setSocket] = useState(null);
+
+  // Initialize WebSocket connection
+  useEffect(() => {
+    if (isAdmin && albumId) {
+      const newSocket = io(API_URL);
+      newSocket.on('connect', () => {
+        console.log('WebSocket connected');
+        newSocket.emit('join_album', albumId);
+      });
+      newSocket.on('challenge_created', handleChallengeCreated);
+      newSocket.on('challenge_deleted', handleChallengeDeleted);
+      setSocket(newSocket);
+
+      return () => {
+        newSocket.off('challenge_created', handleChallengeCreated);
+        newSocket.off('challenge_deleted', handleChallengeDeleted);
+        newSocket.close();
+      };
+    }
+  }, [isAdmin, albumId]);
 
   const fetchChallenges = useCallback(async () => {
     if (!isAdmin || !albumId) return;
     try {
-      const res = await axios.get(`${API_URL}?albumId=${albumId}`);
+      const cachedChallenges = localStorage.getItem(`challenges_${albumId}`);
+      const cachedTimestamp = localStorage.getItem(`challenges_${albumId}_timestamp`);
+
+      if (cachedChallenges && cachedTimestamp) {
+        const now = Date.now();
+        if (now - parseInt(cachedTimestamp) < 60000) { // 1 minute cache
+          setChallenges(JSON.parse(cachedChallenges));
+          return;
+        }
+      }
+
+      const res = await axios.get(`${CHALLENGES_ENDPOINT}?albumId=${albumId}`);
       setChallenges(res.data);
+      localStorage.setItem(`challenges_${albumId}`, JSON.stringify(res.data));
+      localStorage.setItem(`challenges_${albumId}_timestamp`, Date.now().toString());
     } catch (err) {
       console.error('Error fetching challenges:', err);
     }
@@ -27,23 +63,55 @@ const PhotoChallengePage = () => {
     fetchChallenges();
   }, [fetchChallenges]);
 
+  const handleChallengeCreated = useCallback((newChallenge) => {
+    if (newChallenge.albumId === albumId) {
+      setChallenges(prevChallenges => {
+        const updatedChallenges = [...prevChallenges, newChallenge];
+        localStorage.setItem(`challenges_${albumId}`, JSON.stringify(updatedChallenges));
+        return updatedChallenges;
+      });
+    }
+  }, [albumId]);
+
+  const handleChallengeDeleted = useCallback((deletedChallenge) => {
+    if (deletedChallenge.albumId === albumId) {
+      setChallenges(prevChallenges => {
+        const updatedChallenges = prevChallenges.filter(challenge => challenge._id !== deletedChallenge.id);
+        localStorage.setItem(`challenges_${albumId}`, JSON.stringify(updatedChallenges));
+        return updatedChallenges;
+      });
+    }
+  }, [albumId]);
+
   const deleteChallenge = useCallback(async (id) => {
+    // Optimistic update
+    setChallenges(prevChallenges => prevChallenges.filter(challenge => challenge._id !== id));
+
     try {
-      await axios.delete(`${API_URL}/${id}`);
-      setChallenges(challenges => challenges.filter(challenge => challenge._id !== id));
+      await axios.delete(`${CHALLENGES_ENDPOINT}/${id}`);
+      // The actual update will be handled by the WebSocket event
     } catch (err) {
       console.error('Error deleting challenge:', err);
+      // Revert the optimistic update
+      fetchChallenges();
     }
-  }, []);
+  }, [fetchChallenges]);
 
   const addNewChallenge = useCallback(async () => {
     if (newTitle && albumId) {
+      // Optimistic update
+      const tempId = Date.now().toString();
+      const tempChallenge = { _id: tempId, title: newTitle, albumId };
+      setChallenges(prevChallenges => [...prevChallenges, tempChallenge]);
+
       try {
-        const res = await axios.post(API_URL, { title: newTitle, albumId });
-        setChallenges(challenges => [...challenges, res.data]);
+        const res = await axios.post(CHALLENGES_ENDPOINT, { title: newTitle, albumId });
+        // The actual update will be handled by the WebSocket event
         setNewTitle('');
       } catch (err) {
         console.error('Error adding challenge:', err);
+        // Revert the optimistic update
+        setChallenges(prevChallenges => prevChallenges.filter(challenge => challenge._id !== tempId));
       }
     }
   }, [newTitle, albumId]);

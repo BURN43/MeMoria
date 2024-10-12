@@ -20,7 +20,7 @@ export const NavBar = () => {
         <NavItem to="/photo-challenge" icon={<FaCamera />} label="Challenges Admin" />
         <NavItem to="/guest-challenge" icon={<FaCamera />} label="Challenges" />
         <NavItem to="/design-table-stand" icon={<FaQrcode />} label="Design Stand" />
-        <NavItem to="/expand-package" icon={<FaArrowUp />} label="Upgrade" />
+        <NavItem to="/paket-erweitern" icon={<FaArrowUp />} label="Paket erweitern" />
       </div>
     </nav>
   );

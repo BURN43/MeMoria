@@ -42,6 +42,7 @@
 		"redux-devtools-extension": "^2.13.9",
 		"redux-thunk": "^2.3.0",
 		"sharp": "^0.33.5",
+		"socket.io": "^4.8.0",
 		"uuid": "^10.0.0",
 		"validate-image-type": "^3.0.0"
 	},

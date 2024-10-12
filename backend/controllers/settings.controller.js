@@ -18,15 +18,28 @@ export const getSettings = async (req, res) => {
 export const updateSettings = async (req, res) => {
   try {
     const userId = req.user._id;
+    console.log('Updating settings for user:', userId);
+    console.log('Request body:', req.body);
+
     const updatedSettings = await Settings.findOneAndUpdate(
       { userId },
       req.body,
-      { new: true, upsert: true } // Upsert to create if not exists
+      { new: true, upsert: true, runValidators: true }
     );
+
+    console.log('Updated settings:', updatedSettings);
+
+    // Emit the settings_updated event
+    const io = req.app.get('io');
+    io.emit('settings_updated', updatedSettings);
+
     res.json(updatedSettings);
   } catch (error) {
     console.error('Error updating settings:', error);
-    res.status(500).json({ message: 'Server error.' });
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({ message: 'Validation error', details: error.errors });
+    }
+    res.status(500).json({ message: 'Server error', details: error.message });
   }
 };
 
@@ -34,6 +47,11 @@ export const deleteSettings = async (req, res) => {
   try {
     const userId = req.user._id;
     await Settings.findOneAndDelete({ userId });
+
+    // Emit the settings_deleted event
+    const io = req.app.get('io');
+    io.emit('settings_deleted', { userId });
+
     res.json({ message: 'Settings deleted.' });
   } catch (error) {
     console.error('Error deleting settings:', error);

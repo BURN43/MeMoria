@@ -1,65 +1,120 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import Layout from '../components/Layout';
 import axios from 'axios';
 import { useAuthStore } from '../store/authStore';
 import { Navigate } from 'react-router-dom';
-import { debounce } from 'lodash';
+import io from 'socket.io-client';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://e7ea99a1-f3aa-439b-97db-82d9e87187ed-00-1etsckkyhp4f3.spock.replit.dev:5000';
 
+const defaultSettings = {
+  albumTitle: '',
+  eventDate: '',
+  eventTime: '',
+  greetingText: '',
+  guestInfo: '',
+  GuestUploadsImage: true,
+  GuestUploadsVideo: true,
+  Guestcomments: false,
+  GuestDownloadOption: false,
+};
+
 const SettingsPage = () => {
   const { user } = useAuthStore();
-
+  const [socket, setSocket] = useState(null);
   const [settings, setSettings] = useState(() => {
     const cachedSettings = localStorage.getItem('albumSettings');
-    return cachedSettings ? JSON.parse(cachedSettings) : {
-      albumTitle: '',
-      eventDate: '',
-      eventTime: '',
-      greetingText: '',
-      guestInfo: '',
-      GuestUploadsImage: false,
-      GuestUploadsVideo: false,
-      Guestcomments: false,
-      GuestDownloadOption: false,
-    };
+    return cachedSettings ? JSON.parse(cachedSettings) : defaultSettings;
   });
-
   const [countdown, setCountdown] = useState(null);
   const [feedbackMessage, setFeedbackMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [isModified, setIsModified] = useState(false);
 
-  const fetchSettings = useCallback(async () => {
-    const cachedTimestamp = localStorage.getItem('albumSettingsTimestamp');
-    const currentTime = new Date().getTime();
+  useEffect(() => {
+    const newSocket = io(API_BASE_URL);
+    setSocket(newSocket);
 
-    if (cachedTimestamp && currentTime - parseInt(cachedTimestamp) < 3600000) {
-      return; // Use cached settings if they're less than an hour old
-    }
+    const handleReconnect = () => {
+      console.log('WebSocket reconnected');
+      fetchSettings(true);
+    };
 
+    newSocket.on('connect', handleReconnect);
+
+    return () => {
+      newSocket.off('connect', handleReconnect);
+      newSocket.close();
+    };
+  }, []);
+
+  const fetchSettings = useCallback(async (force = false) => {
+    if (!force && !isLoading) return;
+
+    setIsLoading(true);
     try {
       const response = await axios.get(`${API_BASE_URL}/api/settings`, {
         withCredentials: true,
       });
       const settingsData = response.data;
-      setSettings({
+      const formattedSettings = {
         ...settingsData,
         eventDate: settingsData.eventDate
           ? new Date(settingsData.eventDate).toISOString().split('T')[0]
           : '',
-      });
+      };
 
-      // Cache the fetched settings
-      localStorage.setItem('albumSettings', JSON.stringify(settingsData));
-      localStorage.setItem('albumSettingsTimestamp', currentTime.toString());
+      if (JSON.stringify(formattedSettings) !== JSON.stringify(settings)) {
+        setSettings(formattedSettings);
+        localStorage.setItem('albumSettings', JSON.stringify(settingsData));
+      }
     } catch (error) {
       console.error('Error fetching settings:', error);
+      setFeedbackMessage('Failed to fetch settings. Using cached data.');
+    } finally {
+      setIsLoading(false);
     }
-  }, []);
+  }, [isLoading, settings]);
 
   useEffect(() => {
     fetchSettings();
   }, [fetchSettings]);
+
+  useEffect(() => {
+    if (socket) {
+      const handleSettingsUpdate = (updatedSettings) => {
+        const formattedSettings = {
+          ...updatedSettings,
+          eventDate: updatedSettings.eventDate
+            ? new Date(updatedSettings.eventDate).toISOString().split('T')[0]
+            : '',
+        };
+
+        if (JSON.stringify(formattedSettings) !== JSON.stringify(settings)) {
+          setSettings(formattedSettings);
+          localStorage.setItem('albumSettings', JSON.stringify(updatedSettings));
+          setFeedbackMessage('Settings updated!');
+          setTimeout(() => setFeedbackMessage(''), 3000);
+        }
+      };
+
+      const handleSettingsDelete = () => {
+        setSettings(defaultSettings);
+        localStorage.removeItem('albumSettings');
+        setFeedbackMessage('Settings have been deleted by an admin.');
+        setTimeout(() => setFeedbackMessage(''), 3000);
+      };
+
+      socket.on('settings_updated', handleSettingsUpdate);
+      socket.on('settings_deleted', handleSettingsDelete);
+
+      return () => {
+        socket.off('settings_updated', handleSettingsUpdate);
+        socket.off('settings_deleted', handleSettingsDelete);
+      };
+    }
+  }, [socket, settings]);
 
   const handleInputChange = useCallback((e) => {
     const { name, value, type, checked } = e.target;
@@ -67,26 +122,27 @@ const SettingsPage = () => {
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
+    setIsModified(true);
   }, []);
 
-  const debouncedSaveSettings = useMemo(() => debounce(async (settings) => {
+  const saveSettings = async () => {
     try {
       await axios.put(`${API_BASE_URL}/api/settings`, settings, {
         withCredentials: true,
       });
       localStorage.setItem('albumSettings', JSON.stringify(settings));
-      localStorage.setItem('albumSettingsTimestamp', new Date().getTime().toString());
       setFeedbackMessage('Settings saved successfully!');
       setTimeout(() => setFeedbackMessage(''), 3000);
-    } catch (error) {
-      setFeedbackMessage('Error saving settings, please try again.');
-      console.error('Error:', error);
-    }
-  }, 500), []);
+      setIsModified(false);
 
-  useEffect(() => {
-    debouncedSaveSettings(settings);
-  }, [settings, debouncedSaveSettings]);
+      if (socket && socket.connected) {
+        socket.emit('settings_updated', settings);
+      }
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      setFeedbackMessage('Error saving settings. Please try again.');
+    }
+  };
 
   useEffect(() => {
     if (settings.eventDate) {
@@ -114,6 +170,16 @@ const SettingsPage = () => {
 
   if (!user || user.role !== 'admin') {
     return <Navigate to="/unauthorized" replace={true} />;
+  }
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="flex justify-center items-center h-screen">
+          <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-purple-500"></div>
+        </div>
+      </Layout>
+    );
   }
 
   return (
@@ -199,6 +265,20 @@ const SettingsPage = () => {
             <Checkbox label="Enable Comments" name="Guestcomments" isChecked={settings.Guestcomments} onChange={handleInputChange} />
             <Checkbox label="Enable Download Options" name="GuestDownloadOption" isChecked={settings.GuestDownloadOption} onChange={handleInputChange} />
           </div>
+        </div>
+
+        <div className="mt-8 text-center">
+          <button
+            onClick={saveSettings}
+            disabled={!isModified}
+            className={`px-6 py-2 rounded-lg ${
+              isModified
+                ? 'bg-orange-600 hover:bg-green-600 text-white'
+                : 'bg-gray-400 text-gray-700 cursor-not-allowed'
+            }`}
+          >
+            Save Settings
+          </button>
         </div>
       </motion.div>
     </Layout>

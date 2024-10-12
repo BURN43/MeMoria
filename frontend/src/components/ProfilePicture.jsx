@@ -1,6 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { FaPlus } from 'react-icons/fa';
 import axios from 'axios';
+import io from 'socket.io-client';
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://e7ea99a1-f3aa-439b-97db-82d9e87187ed-00-1etsckkyhp4f3.spock.replit.dev:5000';
 
 // Inline Spinner component
 const Spinner = () => (
@@ -10,25 +13,60 @@ const Spinner = () => (
 );
 
 const ProfilePicture = ({ isAdmin, userId }) => {
-  const [profilePic, setProfilePic] = useState(null);
+  const [profilePic, setProfilePic] = useState(() => localStorage.getItem('profilePicUrl'));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [socket, setSocket] = useState(null);
 
   useEffect(() => {
-    fetchProfilePicture();
-  }, [userId]);
+    const newSocket = io(API_BASE_URL);
+    setSocket(newSocket);
 
-  const fetchProfilePicture = async () => {
+    return () => newSocket.close();
+  }, []);
+
+  const fetchProfilePicture = useCallback(async () => {
+    const cachedUrl = localStorage.getItem('profilePicUrl');
+    const cachedTimestamp = localStorage.getItem('profilePicTimestamp');
+    const now = Date.now();
+
+    if (cachedUrl && cachedTimestamp && now - parseInt(cachedTimestamp) < 3600000) {
+      setProfilePic(cachedUrl);
+      return;
+    }
+
     try {
-      const response = await axios.get('/api/profile-picture/profile', {
+      const response = await axios.get(`${API_BASE_URL}/api/profile-picture/profile`, {
         withCredentials: true
       });
       setProfilePic(response.data.profilePicUrl);
+      localStorage.setItem('profilePicUrl', response.data.profilePicUrl);
+      localStorage.setItem('profilePicTimestamp', now.toString());
     } catch (error) {
       console.error('Error fetching profile picture:', error);
       setError('Failed to load profile picture');
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchProfilePicture();
+  }, [fetchProfilePicture]);
+
+  useEffect(() => {
+    if (socket) {
+      socket.on('profile_picture_updated', (data) => {
+        if (data.userId === userId) {
+          setProfilePic(data.profilePicUrl);
+          localStorage.setItem('profilePicUrl', data.profilePicUrl);
+          localStorage.setItem('profilePicTimestamp', Date.now().toString());
+        }
+      });
+
+      return () => {
+        socket.off('profile_picture_updated');
+      };
+    }
+  }, [socket, userId]);
 
   const handleUpload = async (event) => {
     const file = event.target.files[0];
@@ -41,11 +79,13 @@ const ProfilePicture = ({ isAdmin, userId }) => {
     formData.append('profilePic', file);
 
     try {
-      const response = await axios.post('/api/profile-picture/profile', formData, {
+      const response = await axios.post(`${API_BASE_URL}/api/profile-picture/profile`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
         withCredentials: true
       });
       setProfilePic(response.data.profilePicUrl);
+      localStorage.setItem('profilePicUrl', response.data.profilePicUrl);
+      localStorage.setItem('profilePicTimestamp', Date.now().toString());
     } catch (error) {
       console.error('Error uploading profile picture:', error);
       setError('Failed to upload profile picture');

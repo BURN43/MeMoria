@@ -3,7 +3,7 @@ import fileUpload from 'express-fileupload';
 import { v4 as uuidv4 } from 'uuid';
 import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import ProfilePicture from '../models/profilePicture.model.js';
-import { User } from '../models/user.model.js'; // Make sure to import the User model
+import { User } from '../models/user.model.js';
 import { authMiddleware } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
@@ -69,6 +69,12 @@ router.post('/profile', authMiddleware, async (req, res) => {
     } else {
       const newProfile = new ProfilePicture({ userId, profilePicUrl });
       await newProfile.save();
+    }
+
+    // Emit WebSocket event
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('profile_picture_updated', { userId, profilePicUrl });
     }
 
     // Return the new profile picture URL

@@ -31,6 +31,11 @@ async function uploadToS3(file, key) {
   return `https://${process.env.AWS_S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
 }
 
+// Helper function to emit WebSocket events
+function emitMediaEvent(io, eventName, data) {
+  io.to(data.albumId).emit(eventName, data);
+}
+
 // Helper function to process media uploads
 async function processUploadRequest(req, res, userId, albumId, challengeTitle, uploaderUsername) {
   console.log('Received files:', req.files);
@@ -63,6 +68,18 @@ async function processUploadRequest(req, res, userId, albumId, challengeTitle, u
       challengeTitle,
       uploaderUsername
     });
+
+    // Emit WebSocket event for new media
+    const io = req.app.get('io');
+    emitMediaEvent(io, 'media_uploaded', {
+      albumId,
+      mediaId: newMedia._id,
+      mediaUrl,
+      thumbnailUrl,
+      challengeTitle,
+      uploaderUsername
+    });
+
     res.status(201).json({ 
       mediaUrl, 
       thumbnailUrl, 
@@ -132,10 +149,10 @@ router.get('/media/:albumId', authMiddleware, async (req, res) => {
 
     const [media, total] = await Promise.all([
       AlbumMedia.find(query)
-        .sort({ createdAt: -1 })
+        .sort({ uploadedAt: -1 })
         .skip(skip)
         .limit(limit)
-        .select('mediaUrl thumbnailUrl mediaType albumId userId challengeTitle uploaderUsername createdAt')
+        .select('mediaUrl thumbnailUrl mediaType albumId userId challengeTitle uploaderUsername uploadedAt')
         .lean(),
       AlbumMedia.countDocuments(query)
     ]);
@@ -183,6 +200,10 @@ router.delete('/media/:id', authMiddleware, requireRole('admin'), async (req, re
 
     await AlbumMedia.findByIdAndDelete(id);
     console.log('Media document removed from database');
+
+    // Emit WebSocket event for deleted media
+    const io = req.app.get('io');
+    emitMediaEvent(io, 'media_deleted', { albumId: media.albumId, mediaId: id });
 
     res.status(200).json({ message: 'Media deleted successfully' });
   } catch (error) {

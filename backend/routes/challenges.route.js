@@ -1,4 +1,3 @@
-// in challenges.route.js
 import express from 'express';
 import Challenge from '../models/challenges.model.js';
 import { User } from '../models/user.model.js';
@@ -13,9 +12,16 @@ router.post('/', async (req, res) => {
     return res.status(400).json({ message: 'Title and albumId are required' });
   }
 
-  try {
+  try { 
     const newChallenge = new Challenge({ title, albumId });
     const savedChallenge = await newChallenge.save();
+
+    // Emit WebSocket event
+    const io = req.app.get('io');
+    if (io) {
+      io.to(albumId).emit('challenge_created', savedChallenge);
+    }
+
     res.status(201).json(savedChallenge);
   } catch (err) {
     console.error('Error saving challenge:', err);
@@ -68,6 +74,12 @@ router.delete('/:id', async (req, res) => {
 
     if (!deletedChallenge) {
       return res.status(404).json({ message: 'Challenge not found' });
+    }
+
+    // Emit WebSocket event
+    const io = req.app.get('io');
+    if (io) {
+      io.to(deletedChallenge.albumId).emit('challenge_deleted', { id, albumId: deletedChallenge.albumId });
     }
 
     res.json({ message: 'Challenge deleted successfully', id });
