@@ -1,23 +1,32 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import * as dotenv from 'dotenv';
+import { resolve } from 'path';
 
-// https://vitejs.dev/config/
-export default defineConfig({
-  plugins: [react()],
-  server: {
-    proxy: {
-      '/api': {
-        target: 'https://e7ea99a1-f3aa-439b-97db-82d9e87187ed-00-1etsckkyhp4f3.spock.replit.dev:5000', // Your backend server
-        changeOrigin: true,
-        secure: false,
-        rewrite: (path) => path.replace(/^\/api/, ''), // Optional: if your backend does not need '/api'
-      },
-      '/socket.io': {
-        target: 'https://e7ea99a1-f3aa-439b-97db-82d9e87187ed-00-1etsckkyhp4f3.spock.replit.dev:5000',
-        changeOrigin: true,
-        secure: false,
-        ws: true,
+// Load environment variables from the root `.env` file
+dotenv.config({ path: resolve(__dirname, '../.env') });
+
+export default defineConfig(({ mode }) => {
+  const isDevelopment = mode === 'development';
+  const backendUrl = isDevelopment ? process.env.VITE_API_BASE_URL_DEV : process.env.VITE_API_BASE_URL_PROD;
+
+  return {
+    plugins: [react()],
+    server: {
+      proxy: {
+        '/api': {
+          target: backendUrl,
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/api/, ''),
+        },
+        '/socket.io': {
+          target: backendUrl,
+          changeOrigin: true,
+          secure: false,
+          ws: true,
+        },
       },
     },
-  },
-})
+  };
+});

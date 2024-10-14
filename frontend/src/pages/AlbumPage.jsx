@@ -9,9 +9,16 @@ import { debounce } from 'lodash';
 import io from 'socket.io-client';
 
 
+// Option 1: Direct backend URL in development
 const API_URL = import.meta.env.MODE === 'development'
-  ? 'https://e7ea99a1-f3aa-439b-97db-82d9e87187ed-00-1etsckkyhp4f3.spock.replit.dev:5000/api'
-  : '/api';
+? import.meta.env.VITE_API_URL_BASE_WITH_API_DEV // Development URL
+: import.meta.env.VITE_API_URL_BASE_WITH_API_PROD; // Production URL
+console.log("API URL:", API_URL);
+
+
+
+
+
 
 // Lazy load components
 const MediaGrid = lazy(() => import('../components/MediaGrid'));
@@ -166,7 +173,18 @@ const AlbumPage = () => {
   }, [isAuthenticated, user, guestAlbumToken, albumData.guestUploadsImage, albumData.guestUploadsVideo]);
 
   useEffect(() => {
-    const newSocket = io(API_URL);
+    const socketUrl = import.meta.env.MODE === 'development'
+      ? import.meta.env.VITE_API_URL // Development URL
+      : import.meta.env.VITE_API_BASE_URL_PROD; // Production URL
+
+    
+
+
+    const newSocket = io(socketUrl, {
+      transports: ['websocket', 'polling'],
+      withCredentials: true,
+    });
+
     setSocket(newSocket);
 
     const handleReconnect = () => {

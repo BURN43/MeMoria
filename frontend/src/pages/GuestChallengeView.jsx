@@ -8,7 +8,12 @@ import { useAuthStore } from '../store/authStore';
 import UsernamePopup from '../components/UsernamePopup';
 import io from 'socket.io-client';
 
-const BASE_URL = 'https://e7ea99a1-f3aa-439b-97db-82d9e87187ed-00-1etsckkyhp4f3.spock.replit.dev:5000';
+
+// Option 1: Direct backend URL in development
+const BASE_URL = import.meta.env.MODE === 'development'
+? import.meta.env.VITE_API_BASE_URL_DEV // Development URL
+: import.meta.env.VITE_API_BASE_URL_PROD; // Production URL
+
 const CHALLENGES_ENDPOINT = `${BASE_URL}/challenges`;
 
 const GuestChallengeView = () => {

@@ -4,7 +4,10 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import axios from 'axios'; // Assuming you're using axios for API calls
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://e7ea99a1-f3aa-439b-97db-82d9e87187ed-00-1etsckkyhp4f3.spock.replit.dev:5000';
+// Option 1: Direct backend URL in development
+const API_URL = import.meta.env.MODE === 'development'
+? import.meta.env.VITE_API_URL_BASE_WITH_API_DEV // Development URL
+: import.meta.env.VITE_API_URL_BASE_WITH_API_PROD; // Production URL
 
 const DashboardPage = () => {
   const [albumProgress, setAlbumProgress] = useState({ uploaded: 0, total: 0 });
@@ -22,7 +25,7 @@ const DashboardPage = () => {
       setCurrentPackage(parsedData.currentPackage);
     } else {
       try {
-        const response = await axios.get(`${API_BASE_URL}/api/dashboard`, {
+        const response = await axios.get(`${API_URL}/dashboard`, {
           withCredentials: true,
         });
         const dashboardData = response.data;

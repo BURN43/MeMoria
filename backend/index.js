@@ -19,15 +19,21 @@ import profilePictureRoutes from './routes/profilePicture.route.js';
 import commentsRouter from './routes/comments.route.js';
 import stripeRoutes from './routes/stripeRoutes.js';
 
-
-
+// Lade Umgebungsvariablen
 dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
+
+// Dynamische Auswahl der Client-URL für CORS und Socket.IO
+const CLIENT_URL = process.env.NODE_ENV === 'production'
+	? process.env.CLIENT_URL_PROD
+	: process.env.CLIENT_URL_DEV;
+
+// Initialisierung von Socket.IO mit dynamischem CORS
 const io = new Server(server, {
 	cors: {
-		origin: "https://e7ea99a1-f3aa-439b-97db-82d9e87187ed-00-1etsckkyhp4f3.spock.replit.dev:5173",
+		origin: CLIENT_URL,
 		methods: ["GET", "POST", "DELETE", "PUT"],
 		credentials: true
 	}
@@ -38,7 +44,11 @@ const PORT = process.env.PORT || 5000;
 const __dirname = path.resolve();
 
 // Middleware
-app.use(cors({ origin: "https://e7ea99a1-f3aa-439b-97db-82d9e87187ed-00-1etsckkyhp4f3.spock.replit.dev:5173", credentials: true }));
+app.use(cors({
+	origin: process.env.CLIENT_URL_DEV,
+	credentials: true,
+}));
+
 app.use(express.json());
 app.use(cookieParser());
 
@@ -59,15 +69,13 @@ app.use('/challenges', challengeRoutes);
 app.use('/api', likeRoutes);
 app.use('/api/user', userRoutes);
 
-
 // Stripe Payment Routes
 app.use('/api/stripe', stripeRoutes);
-
 
 // Socket.IO events
 socketEvents(io);
 
-// Serve static files in production
+// Statische Dateien im Produktionsmodus ausliefern
 if (process.env.NODE_ENV === "production") {
 	app.use(express.static(path.join(__dirname, "/frontend/dist")));
 	app.get("*", (req, res) => {
@@ -75,8 +83,9 @@ if (process.env.NODE_ENV === "production") {
 	});
 }
 
-// Start server
+// Server starten
 server.listen(PORT, () => {
 	connectDB();
 	console.log("Server is running on port:", PORT);
+	console.log("Client URL:", CLIENT_URL);
 });

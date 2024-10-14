@@ -6,7 +6,12 @@ import { useAuthStore } from '../store/authStore';
 import { Navigate } from 'react-router-dom';
 import io from 'socket.io-client';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://e7ea99a1-f3aa-439b-97db-82d9e87187ed-00-1etsckkyhp4f3.spock.replit.dev:5000';
+// Option 1: Direct backend URL in development
+const API_URL = import.meta.env.MODE === 'development'
+? import.meta.env.VITE_API_BASE_URL_DEV // Development URL
+: import.meta.env.VITE_API_BASE_URL_PROD; // Production URL
+console.log("API URL:", API_URL);
+
 
 const defaultSettings = {
   albumTitle: '',
@@ -33,7 +38,7 @@ const SettingsPage = () => {
   const [isModified, setIsModified] = useState(false);
 
   useEffect(() => {
-    const newSocket = io(API_BASE_URL);
+    const newSocket = io(API_URL);
     setSocket(newSocket);
 
     const handleReconnect = () => {
@@ -54,7 +59,7 @@ const SettingsPage = () => {
 
     setIsLoading(true);
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/settings`, {
+      const response = await axios.get(`${API_URL}/api/settings`, {
         withCredentials: true,
       });
       const settingsData = response.data;
@@ -127,7 +132,7 @@ const SettingsPage = () => {
 
   const saveSettings = async () => {
     try {
-      await axios.put(`${API_BASE_URL}/api/settings`, settings, {
+      await axios.put(`${API_URL}/api/settings`, settings, {
         withCredentials: true,
       });
       localStorage.setItem('albumSettings', JSON.stringify(settings));

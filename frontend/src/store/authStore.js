@@ -1,10 +1,10 @@
 import { create } from 'zustand';
 import axios from 'axios';
 
-const API_URL =
-	import.meta.env.MODE === 'development'
-		? 'https://e7ea99a1-f3aa-439b-97db-82d9e87187ed-00-1etsckkyhp4f3.spock.replit.dev:5000/api/auth'
-		: '/api/auth';
+// Option 1: Direct backend URL in development
+const API_URL = import.meta.env.MODE === 'development'
+? import.meta.env.VITE_API_URL_BASE_WITH_API_DEV // Development URL
+: import.meta.env.VITE_API_URL_BASE_WITH_API_PROD; // Production URL
 
 // Remove global axios defaults to prevent sending cookies with every request
 // axios.defaults.withCredentials = true;
@@ -21,7 +21,7 @@ export const useAuthStore = create((set) => ({
 		set({ isLoading: true, error: null });
 		try {
 			const response = await axios.post(
-				`${API_URL}/signup`,
+				`${API_URL}/auth/signup`,
 				{ email, password, name },
 				{ withCredentials: true }
 			);
@@ -39,7 +39,7 @@ export const useAuthStore = create((set) => ({
 		set({ isLoading: true, error: null });
 		try {
 			const response = await axios.post(
-				`${API_URL}/login`,
+				`${API_URL}/auth/login`,
 				{ email, password },
 				{ withCredentials: true }
 			);
@@ -61,7 +61,7 @@ export const useAuthStore = create((set) => ({
 	logout: async () => {
 		set({ isLoading: true, error: null });
 		try {
-			await axios.post(`${API_URL}/logout`, {}, { withCredentials: true });
+			await axios.post(`${API_URL}/auth/logout`, {}, { withCredentials: true });
 			set({ user: null, isAuthenticated: false, error: null, isLoading: false });
 		} catch (error) {
 			set({ error: 'Error logging out', isLoading: false });
@@ -95,7 +95,7 @@ export const useAuthStore = create((set) => ({
 	checkAuth: async () => {
 		set({ isCheckingAuth: true, error: null });
 		try {
-			const response = await axios.get(`${API_URL}/check-auth`, {
+			const response = await axios.get(`${API_URL}/auth/check-auth`, {
 				withCredentials: true,
 			});
 			set({
@@ -126,7 +126,7 @@ export const useAuthStore = create((set) => ({
 	forgotPassword: async (email) => {
 		set({ isLoading: true, error: null });
 		try {
-			const response = await axios.post(`${API_URL}/forgot-password`, { email });
+			const response = await axios.post(`${API_URL}/auth/forgot-password`, { email });
 			set({ message: response.data.message, isLoading: false });
 		} catch (error) {
 			set({
@@ -142,7 +142,7 @@ export const useAuthStore = create((set) => ({
 		set({ isLoading: true, error: null });
 		try {
 			const response = await axios.post(
-				`${API_URL}/reset-password/${token}`,
+				`${API_URL}/auth/reset-password/${token}`,
 				{ password }
 			);
 			set({ message: response.data.message, isLoading: false });

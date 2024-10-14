@@ -5,7 +5,12 @@ import { useAuthStore } from '../store/authStore';
 import Layout from '../components/Layout';
 import io from 'socket.io-client';
 
-const API_URL = 'https://e7ea99a1-f3aa-439b-97db-82d9e87187ed-00-1etsckkyhp4f3.spock.replit.dev:5000';
+
+// Option 1: Direct backend URL in development
+const API_URL = import.meta.env.MODE === 'development'
+? import.meta.env.VITE_API_BASE_URL_DEV // Development URL
+: import.meta.env.VITE_API_BASE_URL_PROD; // Production URL
+
 const CHALLENGES_ENDPOINT = `${API_URL}/challenges`;
 
 const PhotoChallengePage = () => {

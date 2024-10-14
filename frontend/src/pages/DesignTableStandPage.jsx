@@ -31,8 +31,13 @@ const DesignTableStandPage = () => {
   }, [qrCodeSize]);
 
   const albumLink = useMemo(() => {
-    return `https://e7ea99a1-f3aa-439b-97db-82d9e87187ed-00-1etsckkyhp4f3.spock.replit.dev:5173/album/?token=${albumToken}`;
+    const frontendUrl = import.meta.env.MODE === 'development'
+      ? import.meta.env.VITE_API_URL_BASE_WITH_API_DEV // Development URL
+      : import.meta.env.VITE_API_URL_BASE_WITH_API_PROD; // Production URL
+
+    return `${frontendUrl}/album/?token=${albumToken}`;
   }, [albumToken]);
+
 
   const handleLogoUpload = useCallback((e) => {
     const file = e.target.files[0];

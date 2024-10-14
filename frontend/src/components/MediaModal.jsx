@@ -4,7 +4,15 @@ import { FiSend } from 'react-icons/fi';
 import axios from 'axios';
 import CommentPanel from './CommentPanel';
 
-const API_URL = 'https://e7ea99a1-f3aa-439b-97db-82d9e87187ed-00-1etsckkyhp4f3.spock.replit.dev:5000/api';
+
+
+// Dynamische API-URL
+const API_URL = import.meta.env.MODE === 'production'
+  ? import.meta.env.VITE_API_BASE_URL_PROD
+  : import.meta.env.VITE_API_BASE_URL_DEV;
+
+
+
 
 const UsernameModal = React.memo(({ onSubmit, onCancel }) => {
   const [username, setUsername] = useState('');
@@ -96,7 +104,7 @@ const MediaModal = ({
 
     setLoading(true);
     try {
-      const response = await axios.post(`${API_URL}/like/${mediaId}`, { guestSession: username });
+      const response = await axios.post(`${API_URL}/api/like/${mediaId}`, { guestSession: username });
       // Update the likes count in the media array
       const updatedMedia = reversedMedia.map(item => 
         item._id === mediaId ? { ...item, likes: response.data.likes } : item
@@ -114,7 +122,7 @@ const MediaModal = ({
   const handleCommentSubmit = useCallback(async (mediaId, comment, setNewComment) => {
     setLoading(true);
     try {
-      const response = await axios.post(`${API_URL}/comments/${mediaId}`, { comment, guestSession });
+      const response = await axios.post(`${API_URL}/api/comments/${mediaId}`, { comment, guestSession });
       setComments((prev) => ({
         ...prev,
         [mediaId]: [...(prev[mediaId] || []), response.data.comment],

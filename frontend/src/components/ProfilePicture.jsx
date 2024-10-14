@@ -3,7 +3,10 @@ import { FaPlus } from 'react-icons/fa';
 import axios from 'axios';
 import io from 'socket.io-client';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://e7ea99a1-f3aa-439b-97db-82d9e87187ed-00-1etsckkyhp4f3.spock.replit.dev:5000';
+const API_BASE_URL = import.meta.env.MODE === 'production'
+? import.meta.env.VITE_API_BASE_URL_PROD
+: import.meta.env.VITE_API_BASE_URL_DEV;
+
 
 // Inline Spinner component
 const Spinner = () => (

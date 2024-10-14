@@ -11,6 +11,15 @@ import {
 } from "../mailtrap/emails.js";
 import { User } from "../models/user.model.js";
 
+
+// Dynamische Auswahl der CLIENT_URL basierend auf der Umgebung
+
+const clientUrl = process.env.NODE_ENV === 'production'
+? process.env.CLIENT_URL_PROD
+: process.env.CLIENT_URL_DEV;
+
+
+
 export const signup = async (req, res) => {
 	const { email, password, name } = req.body;
 
@@ -149,7 +158,8 @@ export const forgotPassword = async (req, res) => {
 		await user.save();
 
 		// send email
-		await sendPasswordResetEmail(user.email, `${process.env.CLIENT_URL}/reset-password/${resetToken}`);
+		await sendPasswordResetEmail(user.email, `${clientUrl}/reset-password/${resetToken}`);
+
 
 		res.status(200).json({ success: true, message: "Password reset link sent to your email" });
 	} catch (error) {
