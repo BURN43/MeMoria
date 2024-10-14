@@ -45,9 +45,10 @@ const __dirname = path.resolve();
 
 // Middleware
 app.use(cors({
-	origin: process.env.CLIENT_URL_DEV,
+	origin: CLIENT_URL, // Nutzt dynamische CLIENT_URL für CORS
 	credentials: true,
 }));
+
 
 app.use(express.json());
 app.use(cookieParser());
