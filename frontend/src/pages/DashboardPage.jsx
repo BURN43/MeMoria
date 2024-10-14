@@ -118,7 +118,7 @@ const DashboardPage = () => {
             You are on the <strong>{currentPackage}</strong>. Upgrade for more features.
           </p>
           <Link
-            to="/expand-package"
+            to="/paket-erweitern"
             className="button bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700"
           >
             Upgrade Package
