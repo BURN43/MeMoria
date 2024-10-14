@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import path from 'path';
 
 export default defineConfig(({ mode }) => {
   const isDevelopment = mode === 'development';
@@ -7,6 +8,16 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react()],
+    resolve: {
+      alias: {
+        'qrcode.react': path.resolve(__dirname, 'node_modules/qrcode.react'),
+      },
+    },
+    build: {
+      rollupOptions: {
+        external: ['qrcode.react'], // Markiere `qrcode.react` als externes Modul
+      },
+    },
     server: {
       proxy: {
         '/api': {
