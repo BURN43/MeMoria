@@ -57,6 +57,13 @@ app.get('/', (req, res) => {
 	res.send('Welcome to my backend API server!');
 });
 
+
+// Health Check Endpoint
+app.get('/health', (req, res) => {
+	res.status(200).send('OK');
+});
+
+
 // API routes
 app.use("/api/auth", authRoutes);
 app.use("/api/settings", settingsRoutes);
