@@ -5,6 +5,8 @@ import { Toaster } from 'react-hot-toast';
 import { Elements } from '@stripe/react-stripe-js';
 import stripePromise from './Stripe/Stripe';
 import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
+
 
 import './styles/global.css';
 
@@ -105,6 +107,7 @@ function App() {
 				</Suspense>
 				<Toaster />
 				<Analytics /> {/* Added Analytics component for Vercel */}
+				 <SpeedInsights />  {/* Enables Vercel Speed Insights */}
 			</div>
 		</Elements>
 	);
