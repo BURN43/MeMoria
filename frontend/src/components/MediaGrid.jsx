@@ -77,6 +77,8 @@ const MediaItem = React.memo(({ mediaItem, isAdmin, openModal, onDelete }) => {
   const controls = useAnimation();
   const longPressTimer = useRef(null);
   const isLongPress = useRef(false);
+  const touchStartY = useRef(0);
+  const touchEndY = useRef(0);
 
   const handleDelete = useCallback((e) => {
     e.stopPropagation();
@@ -85,19 +87,26 @@ const MediaItem = React.memo(({ mediaItem, isAdmin, openModal, onDelete }) => {
     }
   }, [mediaItem._id, onDelete]);
 
-  const handleTouchStart = useCallback(() => {
+  const handleTouchStart = useCallback((e) => {
     isLongPress.current = false;
+    touchStartY.current = e.touches[0].clientY; // Speichert die Startposition
     longPressTimer.current = setTimeout(() => {
       isLongPress.current = true;
       setShowOptions(true);
       controls.start({ scale: 0.95 });
-    }, 500); // 500ms for long press
+    }, 500); // 500ms für Long-Press
   }, [controls]);
+
+  const handleTouchMove = useCallback((e) => {
+    touchEndY.current = e.touches[0].clientY; // Aktualisiert die Endposition
+  }, []);
 
   const handleTouchEnd = useCallback(() => {
     clearTimeout(longPressTimer.current);
     controls.start({ scale: 1 });
-    if (!isLongPress.current) {
+
+    // Überprüfen, ob die Bewegung als Tap gilt
+    if (!isLongPress.current && Math.abs(touchStartY.current - touchEndY.current) < 10) {
       openModal(mediaItem);
     }
   }, [controls, openModal, mediaItem]);
@@ -116,6 +125,7 @@ const MediaItem = React.memo(({ mediaItem, isAdmin, openModal, onDelete }) => {
     <motion.div
       className="relative w-full cursor-pointer aspect-square bg-gray-800 rounded-lg overflow-hidden"
       onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -172,9 +182,6 @@ const MediaGrid = ({
   const sortedMedia = useMemo(() => {
     return [...media].sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
   }, [media]);
-
-
-
 
   const handleFileChange = useCallback((e) => {
     if (e.target.files.length > 0) {
