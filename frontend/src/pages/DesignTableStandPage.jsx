@@ -15,6 +15,13 @@ const DesignTableStandPage = () => {
     return parseInt(localStorage.getItem('qrCodeSize') || '250', 10);
   });
   const [logo, setLogo] = useState(null);
+  const [QRCodeCanvas, setQRCodeCanvas] = useState(null);
+  useEffect(() => {
+    // Dynamisch `qrcode.react` laden
+    import('qrcode.react').then((module) => {
+      setQRCodeCanvas(() => module.QRCodeCanvas);
+    });
+  }, []);
 
   useEffect(() => {
     if (user && user.albumToken) {
@@ -37,7 +44,6 @@ const DesignTableStandPage = () => {
 
     return `${frontendUrl}/album/?token=${albumToken}`;
   }, [albumToken]);
-
 
   const handleLogoUpload = useCallback((e) => {
     const file = e.target.files[0];
@@ -145,6 +151,24 @@ const DesignTableStandPage = () => {
               }
               className="mb-6"
             />
+            {QRCodeCanvas && (
+              <QRCodeCanvas
+                value={albumLink}
+                size={qrCodeSize}
+                fgColor={foregroundColor}
+                imageSettings={
+                  logo
+                    ? {
+                        src: logo,
+                        height: 50,
+                        width: 50,
+                        excavate: true,
+                      }
+                    : undefined
+                }
+                className="mb-6"
+              />
+            )}
           </div>
 
           {/* Album Link with Copy Function */}
