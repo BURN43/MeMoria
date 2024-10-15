@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import Layout from '../components/Layout';
-import { QRCodeCanvas } from 'qrcode.react';
 import { useAuthStore } from '../store/authStore';
 import { Navigate } from 'react-router-dom';
 
@@ -16,6 +15,7 @@ const DesignTableStandPage = () => {
   });
   const [logo, setLogo] = useState(null);
   const [QRCodeCanvas, setQRCodeCanvas] = useState(null);
+
   useEffect(() => {
     // Dynamisch `qrcode.react` laden
     import('qrcode.react').then((module) => {
@@ -39,8 +39,8 @@ const DesignTableStandPage = () => {
 
   const albumLink = useMemo(() => {
     const frontendUrl = import.meta.env.MODE === 'development'
-      ? import.meta.env.VITE_API_URL_BASE_WITH_API_DEV // Development URL
-      : import.meta.env.VITE_API_URL_BASE_WITH_API_PROD; // Production URL
+      ? import.meta.env.VITE_API_URL_BASE_WITH_API_DEV
+      : import.meta.env.VITE_API_URL_BASE_WITH_API_PROD;
 
     return `${frontendUrl}/album/?token=${albumToken}`;
   }, [albumToken]);
@@ -86,7 +86,6 @@ const DesignTableStandPage = () => {
         transition={{ duration: 0.5 }}
         className="p-4 md:p-8 pb-20"
       >
-        {/* Intro Section */}
         <div className="text-center max-w-2xl mx-auto mb-8 mt-10">
           <h1 className="text-4xl font-extrabold mb-6 text-gradient">
             Design Your Table Stand QR Code
@@ -96,7 +95,6 @@ const DesignTableStandPage = () => {
           </p>
         </div>
 
-        {/* QR Code Customization Block */}
         <div className="bg-gray-800 rounded-xl p-8 shadow-lg max-w-3xl mx-auto mb-8">
           <h2 className="text-2xl text-gray-200 font-bold mb-6">QR Code Settings</h2>
 
@@ -135,22 +133,6 @@ const DesignTableStandPage = () => {
           </div>
 
           <div className="flex justify-center items-center">
-            <QRCodeCanvas
-              value={albumLink}
-              size={qrCodeSize}
-              fgColor={foregroundColor}
-              imageSettings={
-                logo
-                  ? {
-                      src: logo,
-                      height: 50,
-                      width: 50,
-                      excavate: true,
-                    }
-                  : undefined
-              }
-              className="mb-6"
-            />
             {QRCodeCanvas && (
               <QRCodeCanvas
                 value={albumLink}
@@ -171,7 +153,6 @@ const DesignTableStandPage = () => {
             )}
           </div>
 
-          {/* Album Link with Copy Function */}
           <div className="text-center mb-6">
             <p className="text-gray-300 mb-2">Shareable Link:</p>
             <div className="flex justify-center items-center gap-2">
