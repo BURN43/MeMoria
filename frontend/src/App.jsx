@@ -4,6 +4,7 @@ import { useAuthStore } from './store/authStore';
 import { Toaster } from 'react-hot-toast';
 import { Elements } from '@stripe/react-stripe-js';
 import stripePromise from './Stripe/Stripe';
+import { Analytics } from '@vercel/analytics/react';
 
 import './styles/global.css';
 
@@ -103,6 +104,7 @@ function App() {
 					</Routes>
 				</Suspense>
 				<Toaster />
+				<Analytics /> {/* Added Analytics component for Vercel */}
 			</div>
 		</Elements>
 	);
