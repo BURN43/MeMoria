@@ -3,6 +3,8 @@ import { motion } from 'framer-motion';
 import Layout from '../components/Layout';
 import { useAuthStore } from '../store/authStore';
 import { Navigate } from 'react-router-dom';
+import { QRCodeCanvas } from 'qrcode.react';
+
 
 const DesignTableStandPage = () => {
   const { user } = useAuthStore();
