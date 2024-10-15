@@ -41,8 +41,8 @@ const DesignTableStandPage = () => {
 
   const albumLink = useMemo(() => {
     const frontendUrl = import.meta.env.MODE === 'development'
-      ? import.meta.env.VITE_API_BASE_URL_DEV
-      : import.meta.env.VITE_API_BASE_URL_PROD;
+      ? import.meta.env.VITE_BASE_URL_DEV
+      : import.meta.env.VITE_BASE_URL_PROD;
 
     return `${frontendUrl}/album/?token=${albumToken}`;
   }, [albumToken]);
