@@ -1,82 +1,10 @@
-import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import { motion, useAnimation } from 'framer-motion';
-import { FaPlus, FaTrashAlt, FaEye, FaRedoAlt } from 'react-icons/fa';
-
-const spinnerStyles = {
-  border: '4px solid rgba(255, 255, 255, 0.3)',
-  borderLeftColor: '#ffffff',
-  borderRadius: '50%',
-  width: '40px',
-  height: '40px',
-  animation: 'spin 1s linear infinite',
-};
-
-const placeholderImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
-
-const ThumbnailImage = React.memo(({ src, alt, className }) => {
-  const [imageSrc, setImageSrc] = useState(placeholderImage);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const retryCount = useRef(0);
-
-  const loadImage = useCallback(() => {
-    setIsLoading(true);
-    setError(null);
-
-    const img = new Image();
-    img.src = src;
-    img.onload = () => {
-      setImageSrc(src);
-      setIsLoading(false);
-    };
-    img.onerror = () => {
-      setError('Failed to load image');
-      setIsLoading(false);
-    };
-  }, [src]);
-
-  useEffect(() => {
-    loadImage();
-  }, [loadImage]);
-
-  const handleRetry = () => {
-    if (retryCount.current < 3) {
-      retryCount.current += 1;
-      loadImage();
-    }
-  };
-
-  if (error) {
-    return (
-      <div className="flex items-center justify-center w-full h-full bg-gray-200">
-        <button onClick={handleRetry} className="text-gray-500 hover:text-gray-700">
-          <FaRedoAlt size={24} />
-        </button>
-      </div>
-    );
-  }
-
-  return (
-    <>
-      {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-200">
-          <div style={spinnerStyles} />
-        </div>
-      )}
-      <img
-        src={imageSrc}
-        alt={alt}
-        className={`${className} ${isLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
-      />
-    </>
-  );
-});
+import { FaPlus, FaEye, FaTrashAlt } from 'react-icons/fa';
 
 const MediaItem = React.memo(({ mediaItem, isAdmin, openModal, onDelete }) => {
   const [showOptions, setShowOptions] = useState(false);
   const controls = useAnimation();
-  const longPressTimer = useRef(null);
-  const isLongPress = useRef(false);
   const touchStartY = useRef(0);
   const touchEndY = useRef(0);
 
@@ -88,28 +16,15 @@ const MediaItem = React.memo(({ mediaItem, isAdmin, openModal, onDelete }) => {
   }, [mediaItem._id, onDelete]);
 
   const handleTouchStart = useCallback((e) => {
-    isLongPress.current = false;
-    touchStartY.current = e.touches[0].clientY; // Speichert die Startposition
-    longPressTimer.current = setTimeout(() => {
-      isLongPress.current = true;
-      setShowOptions(true);
-      controls.start({ scale: 0.95 });
-    }, 500); // 500ms für Long-Press
-  }, [controls]);
-
-  const handleTouchMove = useCallback((e) => {
-    touchEndY.current = e.touches[0].clientY; // Aktualisiert die Endposition
+    touchStartY.current = e.touches[0].clientY;
   }, []);
 
-  const handleTouchEnd = useCallback(() => {
-    clearTimeout(longPressTimer.current);
-    controls.start({ scale: 1 });
-
-    // Überprüfen, ob die Bewegung als Tap gilt
-    if (!isLongPress.current && Math.abs(touchStartY.current - touchEndY.current) < 10) {
+  const handleTouchEnd = useCallback((e) => {
+    touchEndY.current = e.changedTouches[0].clientY;
+    if (Math.abs(touchStartY.current - touchEndY.current) < 10) {
       openModal(mediaItem);
     }
-  }, [controls, openModal, mediaItem]);
+  }, [openModal, mediaItem]);
 
   const handleMouseEnter = useCallback(() => {
     if (isAdmin) {
@@ -121,14 +36,18 @@ const MediaItem = React.memo(({ mediaItem, isAdmin, openModal, onDelete }) => {
     setShowOptions(false);
   }, []);
 
+  const handleClick = useCallback(() => {
+    openModal(mediaItem);
+  }, [openModal, mediaItem]);
+
   return (
     <motion.div
       className="relative w-full cursor-pointer aspect-square bg-gray-800 rounded-lg overflow-hidden"
       onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      onClick={handleClick}
       animate={controls}
     >
       {mediaItem.mediaType === 'video' ? (
@@ -136,7 +55,7 @@ const MediaItem = React.memo(({ mediaItem, isAdmin, openModal, onDelete }) => {
           <source src={mediaItem.thumbnailUrl || mediaItem.mediaUrl} type="video/mp4" />
         </video>
       ) : (
-        <ThumbnailImage
+        <img
           src={mediaItem.thumbnailUrl || mediaItem.mediaUrl}
           alt={mediaItem.title || 'Media'}
           className="object-cover w-full h-full"
@@ -253,7 +172,7 @@ const MediaGrid = ({
             />
             {loading ? (
               <div className="circle-progress">
-                <div style={spinnerStyles} />
+                <div style={{ animation: 'spin 1s linear infinite' }} />
               </div>
             ) : (
               <FaPlus className="text-purple-600 text-4xl" />
@@ -265,16 +184,16 @@ const MediaGrid = ({
         {memoizedMediaItems}
 
         {infiniteScroll && <div id="sentinel" style={{ height: '10px' }} />}
-
-        {!infiniteScroll && sortedMedia.length > itemsToShow && (
-          <button
-            onClick={loadMoreItems}
-            className="col-span-full p-2 bg-purple-600 text-white mt-4 rounded"
-          >
-            Load More
-          </button>
-        )}
       </div>
+
+      {!infiniteScroll && sortedMedia.length > itemsToShow && (
+        <button
+          onClick={loadMoreItems}
+          className="col-span-full p-2 bg-purple-600 text-white mt-4 rounded"
+        >
+          Load More
+        </button>
+      )}
     </div>
   );
 };

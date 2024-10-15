@@ -8,28 +8,72 @@ import { FaPlus } from 'react-icons/fa';
 import { debounce } from 'lodash';
 import io from 'socket.io-client';
 
-
-// Option 1: Direct backend URL in development
+// API URL setup
 const API_URL = import.meta.env.MODE === 'development'
-? import.meta.env.VITE_API_URL_BASE_WITH_API_DEV // Development URL
-: import.meta.env.VITE_API_URL_BASE_WITH_API_PROD; // Production URL
+  ? import.meta.env.VITE_API_URL_BASE_WITH_API_DEV
+  : import.meta.env.VITE_API_URL_BASE_WITH_API_PROD;
 console.log("API URL:", API_URL);
-
-
-
-
-
 
 // Lazy load components
 const MediaGrid = lazy(() => import('../components/MediaGrid'));
 const MediaModal = lazy(() => import('../components/MediaModal'));
 
-// Inline Spinner component
+// Spinner component
 const Spinner = () => (
   <div className="flex justify-center items-center">
     <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-purple-500"></div>
   </div>
 );
+
+// UploadPopup component
+const UploadPopup = ({ onSubmit, onClose }) => {
+  const [username, setUsername] = useState('');
+  const [greetingText, setGreetingText] = useState('');
+
+  const handleSubmit = () => {
+    if (username.trim()) {
+      onSubmit(username, greetingText);
+      onClose();
+    } else {
+      alert("Username cannot be empty.");
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-75 z-50">
+      <div className="bg-white p-8 rounded shadow-lg max-w-md w-full mx-4">
+        <h2 className="text-2xl font-semibold mb-4 text-gray-900">Upload Details</h2>
+        <input
+          type="text"
+          placeholder="Your username"
+          className="border border-gray-300 rounded p-3 focus:outline-none focus:ring-2 focus:ring-purple-500 w-full mb-4 bg-gray-100 text-gray-800 placeholder-gray-500"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+        />
+        <textarea
+          placeholder="Share a greeting (optional)"
+          className="border border-gray-300 rounded p-3 focus:outline-none focus:ring-2 focus:ring-purple-500 w-full mb-5 bg-gray-100 text-gray-800 placeholder-gray-500 h-24 resize-none"
+          value={greetingText}
+          onChange={(e) => setGreetingText(e.target.value)}
+        />
+        <div className="flex justify-end">
+          <button 
+            className="bg-purple-600 text-white py-2 px-4 rounded-lg mr-2 hover:bg-purple-700 transition-colors" 
+            onClick={handleSubmit}
+          >
+            Upload
+          </button>
+          <button 
+            className="py-2 px-4 text-gray-600 hover:text-gray-900 transition-colors" 
+            onClick={onClose}
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // ProfilePicture component
 const ProfilePicture = React.memo(({ isAdmin, userId, guestAlbumToken }) => {
@@ -165,6 +209,8 @@ const AlbumPage = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [redirectToLogin, setRedirectToLogin] = useState(false);
   const [socket, setSocket] = useState(null);
+  const [isPopupVisible, setIsPopupVisible] = useState(false);
+  const [pendingFile, setPendingFile] = useState(null);
 
   const canUpload = useMemo(() => {
     if (isAuthenticated && user?.role === 'admin') return true;
@@ -174,11 +220,8 @@ const AlbumPage = () => {
 
   useEffect(() => {
     const socketUrl = import.meta.env.MODE === 'development'
-      ? import.meta.env.VITE_API_URL // Development URL
-      : import.meta.env.VITE_API_BASE_URL_PROD; // Production URL
-
-    
-
+      ? import.meta.env.VITE_API_URL
+      : import.meta.env.VITE_API_BASE_URL_PROD;
 
     const newSocket = io(socketUrl, {
       transports: ['websocket', 'polling'],
@@ -351,16 +394,21 @@ const AlbumPage = () => {
     }
 
     if (isUploading) return;
+    setPendingFile(file);
+    setIsPopupVisible(true);
+  }, [canUpload, isUploading]);
+
+  const onUploadSubmit = async (username, greetingText) => {
     setIsUploading(true);
     setUploadProgress(0);
 
     const optimisticMedia = {
       _id: 'temp_' + Date.now(),
-      mediaUrl: URL.createObjectURL(file),
-      title: file.name,
+      mediaUrl: URL.createObjectURL(pendingFile),
+      title: pendingFile.name,
       uploadedAt: new Date().toISOString(),
       challengeTitle: '',
-      uploaderUsername: user?.username || 'Guest'
+      uploaderUsername: username
     };
 
     setAlbumData(prevData => ({
@@ -369,7 +417,9 @@ const AlbumPage = () => {
     }));
 
     const formData = new FormData();
-    formData.append('mediaFile', file);
+    formData.append('mediaFile', pendingFile);
+    formData.append('uploaderUsername', username);
+    formData.append('greetingText', greetingText);
 
     try {
       let url = `${API_URL}/album-media/upload-media`;
@@ -394,13 +444,15 @@ const AlbumPage = () => {
           setUploadProgress(percentCompleted);
         }
       });
+
       const newMedia = {
         _id: response.data._id,
         mediaUrl: response.data.mediaUrl,
-        title: file.name,
+        title: pendingFile.name,
         uploadedAt: new Date().toISOString(),
         challengeTitle: response.data.challengeTitle || '',
-        uploaderUsername: response.data.uploaderUsername || ''
+        uploaderUsername: username,
+        greetingText: greetingText
       };
 
       setAlbumData(prevData => ({
@@ -413,6 +465,9 @@ const AlbumPage = () => {
       if (socket && socket.connected) {
         socket.emit('media_uploaded', newMedia);
       }
+
+      setIsPopupVisible(false);
+      setPendingFile(null);
     } catch (error) {
       console.error('Upload failed:', error);
       setErrorMessage('Failed to upload media. ' + (error.response?.data?.error || error.message));
@@ -425,7 +480,7 @@ const AlbumPage = () => {
       setIsUploading(false);
       setUploadProgress(0);
     }
-  }, [canUpload, isUploading, isAuthenticated, user, guestAlbumToken, socket]);
+  };
 
   const handleDelete = useCallback(async (mediaId) => {
     if (!isAuthenticated || user?.role !== 'admin') {
@@ -562,6 +617,12 @@ const AlbumPage = () => {
             showUploaderUsername={true}
           />
         </Suspense>
+      )}
+      {isPopupVisible && (
+        <UploadPopup
+          onSubmit={onUploadSubmit}
+          onClose={() => setIsPopupVisible(false)}
+        />
       )}
     </Layout>
   );

@@ -1,18 +1,13 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { FaRegHeart, FaRegComment, FaTimes, FaChevronLeft } from 'react-icons/fa';
+import { FaRegHeart, FaRegComment, FaChevronLeft } from 'react-icons/fa';
 import { FiSend } from 'react-icons/fi';
 import axios from 'axios';
 import CommentPanel from './CommentPanel';
 
-
-
-// Dynamische API-URL
+// Dynamic API URL
 const API_URL = import.meta.env.MODE === 'production'
   ? import.meta.env.VITE_API_BASE_URL_PROD
   : import.meta.env.VITE_API_BASE_URL_DEV;
-
-
-
 
 const UsernameModal = React.memo(({ onSubmit, onCancel }) => {
   const [username, setUsername] = useState('');
@@ -76,7 +71,6 @@ const MediaModal = ({
   const [loading, setLoading] = useState(false);
   const [showUsernameModal, setShowUsernameModal] = useState(false);
 
-  // Reverse the order of media for display in the modal
   const reversedMedia = useMemo(() => [...media].reverse(), [media]);
 
   useEffect(() => {
@@ -84,7 +78,6 @@ const MediaModal = ({
       const initialIndex = reversedMedia.findIndex((item) => item._id === selectedMedia._id);
       setCurrentIndex(initialIndex >= 0 ? initialIndex : 0);
 
-      // Scroll to the selected media item
       const scrollContainer = document.getElementById('media-scroll-container');
       if (scrollContainer) {
         scrollContainer.scrollTop = initialIndex * window.innerHeight;
@@ -105,7 +98,6 @@ const MediaModal = ({
     setLoading(true);
     try {
       const response = await axios.post(`${API_URL}/api/like/${mediaId}`, { guestSession: username });
-      // Update the likes count in the media array
       const updatedMedia = reversedMedia.map(item => 
         item._id === mediaId ? { ...item, likes: response.data.likes } : item
       );
@@ -162,11 +154,9 @@ const MediaModal = ({
                 mediaUrl={item.mediaUrl}
                 title={item.title}
               />
-
-              <button onClick={closeModal} className="absolute top-4 left-4 p-2 text-white text-2xl z-10">
+              <button onClick={closeModal} className="absolute top-8 left-4 p-2 text-white text-2xl z-10">
                 <FaChevronLeft />
               </button>
-
               <div className="absolute bottom-20 right-4 flex flex-col items-center space-y-4 text-white">
                 <button onClick={() => setShowUsernameModal(true)} disabled={loading}>
                   <FaRegHeart className={item.likes?.length > 0 ? 'text-red-500' : 'text-white'} size={28} />
@@ -180,7 +170,6 @@ const MediaModal = ({
                   <FiSend className="text-white" size={28} />
                 </button>
               </div>
-
               <div className="absolute bottom-0 w-full text-center text-white bg-gradient-to-t from-black to-transparent py-4">
                 {showChallengeTitle && item.challengeTitle && (
                   <p className="font-semibold mb-1">Challenge: {item.challengeTitle}</p>
@@ -188,13 +177,15 @@ const MediaModal = ({
                 {showUploaderUsername && item.uploaderUsername && (
                   <p className="mb-2">Uploaded by: {item.uploaderUsername}</p>
                 )}
-                <p>von <span className="font-semibold">{item.author || 'Unknown'}</span></p>
-                <p className="text-sm">{new Date(item.createdAt).toLocaleString()}</p>
+                {item.greetingText && (
+                  <p className="italic mb-2 ">"{item.greetingText}"</p>
+                )}
               </div>
             </div>
           </div>
         ))}
       </div>
+
 
       {showUsernameModal && currentMedia && (
         <UsernameModal
