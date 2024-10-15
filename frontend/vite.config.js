@@ -13,9 +13,12 @@ export default defineConfig(({ mode }) => {
         'qrcode.react': path.resolve(__dirname, 'node_modules/qrcode.react'),
       },
     },
+    optimizeDeps: {
+      include: ['qrcode.react'], // Ensure `qrcode.react` is pre-bundled for faster load
+    },
     build: {
       rollupOptions: {
-        external: ['qrcode.react'], // Markiere `qrcode.react` als externes Modul
+        external: [], // Keep empty or remove if no external modules needed
       },
     },
     server: {
