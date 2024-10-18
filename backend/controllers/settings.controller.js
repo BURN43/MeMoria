@@ -23,7 +23,7 @@ export const updateSettings = async (req, res) => {
 
     const updatedSettings = await Settings.findOneAndUpdate(
       { userId },
-      req.body,
+      { ...req.body, theme: req.body.theme }, // Ensure theme is included
       { new: true, upsert: true, runValidators: true }
     );
 

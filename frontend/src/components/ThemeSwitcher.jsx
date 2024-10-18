@@ -1,6 +1,7 @@
-// ThemeSwitcher.js
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 
+const API_URL = import.meta.env.VITE_API_BASE_URL;
 
 const themes = [
   { name: 'Default', value: 'default' },
@@ -14,9 +15,17 @@ const themes = [
   { name: 'taufe', value: 'taufe' },
 ];
 
-const ThemeSwitcher = () => {
+const ThemeSwitcher = ({ isAuthenticated, currentTheme, onThemeChange }) => {
+  const [localTheme, setLocalTheme] = useState(currentTheme || 'default');
+
+  useEffect(() => {
+    setLocalTheme(currentTheme || 'default');
+  }, [currentTheme]);
+
   const handleThemeChange = (theme) => {
+    setLocalTheme(theme);
     document.documentElement.setAttribute("data-theme", theme);
+    onThemeChange(theme);
   };
 
   return (
@@ -27,6 +36,7 @@ const ThemeSwitcher = () => {
             type="radio"
             name="theme"
             value={theme.value}
+            checked={localTheme === theme.value}
             onChange={() => handleThemeChange(theme.value)}
           />
           <span className="bubble" title={theme.name}></span>

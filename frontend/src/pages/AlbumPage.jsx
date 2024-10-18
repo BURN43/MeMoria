@@ -18,6 +18,7 @@ console.log("API URL:", API_URL);
 const MediaGrid = lazy(() => import('../components/MediaGrid'));
 const MediaModal = lazy(() => import('../components/MediaModal'));
 
+
 // Spinner component
 const Spinner = () => (
   <div className="flex justify-center items-center">
@@ -258,8 +259,10 @@ const AlbumPage = () => {
         greetingText: updatedSettings.greetingText || 'Welcome to the album!',
         guestUploadsImage: updatedSettings.GuestUploadsImage || false,
         guestUploadsVideo: updatedSettings.GuestUploadsVideo || false,
+        theme: updatedSettings.theme || 'default', // Add this line
       };
       localStorage.setItem('albumData', JSON.stringify(newData));
+      document.documentElement.setAttribute("data-theme", newData.theme);
       return newData;
     });
   }, []);
@@ -323,6 +326,9 @@ const AlbumPage = () => {
       if (cachedData) {
         setAlbumData(JSON.parse(cachedData));
         setLoadingSettings(false);
+        document.documentElement.setAttribute("data-theme", parsedData.theme || 'default');
+        setLoadingSettings(false);
+        return;
         return;
       }
     }
@@ -366,10 +372,14 @@ const AlbumPage = () => {
         media: sortedMedia,
         guestUploadsImage: settingsData.GuestUploadsImage || false,
         guestUploadsVideo: settingsData.GuestUploadsVideo || false,
+        theme: settingsData.theme || 'default', // Add this line
       };
       setAlbumData(newAlbumData);
       localStorage.setItem('albumData', JSON.stringify(newAlbumData));
       localStorage.setItem('lastAlbumDataFetchTime', now.toString());
+
+      // Apply the fetched theme
+      document.documentElement.setAttribute("data-theme", newAlbumData.theme);
     } catch (error) {
       console.error('Failed to load album data:', error);
       setErrorMessage('Failed to load album data: ' + (error.response?.data?.message || error.message));

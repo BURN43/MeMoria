@@ -3,9 +3,11 @@ import { FaPlus } from 'react-icons/fa';
 import axios from 'axios';
 import io from 'socket.io-client';
 
-const API_BASE_URL = import.meta.env.MODE === 'production'
-? import.meta.env.VITE_API_BASE_URL_PROD
-: import.meta.env.VITE_API_BASE_URL_DEV;
+// API URL setup
+const API_URL = import.meta.env.MODE === 'development'
+  ? import.meta.env.VITE_API_URL_BASE_WITH_API_DEV
+  : import.meta.env.VITE_API_URL_BASE_WITH_API_PROD;
+console.log("API URL:", API_URL);
 
 
 // Inline Spinner component

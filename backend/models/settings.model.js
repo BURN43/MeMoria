@@ -14,7 +14,7 @@ const settingsSchema = new mongoose.Schema({
   GuestUploadsImage: { type: Boolean, default: false },
   GuestUploadsVideo: { type: Boolean, default: false },
   Guestcomments: { type: Boolean, default: false },
-
+  theme: { type: String, default: 'default' },
   GuestDownloadOption: { type: Boolean, default: false },
   profilePic: { type: String, default: '' }, // New field for profile picture URL
 

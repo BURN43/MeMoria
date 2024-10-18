@@ -583,13 +583,35 @@ a {
    11. Responsive Layouts
 =========================== */
 
+@media (max-width: 767px) {
+  html {
+    font-size: 14px; /* Slightly smaller base font size for mobile */
+  }
+  h1, .heading-xl { font-size: 1.75rem; }
+  h2, .heading-lg { font-size: 1.5rem; }
+
+  .button {
+    padding: 0.5rem 1.5rem; /* Smaller padding for mobile buttons */
+  }
+  .input, textarea {
+    font-size: 16px; /* Prevent zoom on focus in iOS */
+  }
+  /* Improve touch targets for mobile */
+  .nav-item, .button, .input, textarea {
+    min-height: 44px; /* Minimum touch target size */
+  }
+  /* Adjust grid for mobile */
+  .grid { gap: 0.75rem; }
+  .grid-cols-2, .grid-cols-3 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+}
 @media (min-width: 768px) {
   h1, .heading-xl { font-size: 1.875rem; }
   h2, .heading-lg { font-size: 1.5rem; }
+  .md\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
-
 @media (min-width: 1024px) {
   .lg\:text-xl { font-size: 1.25rem; }
+  .lg\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
 /* ===========================
@@ -682,6 +704,9 @@ a {
   }
 }
 
+
+
+
 /* ===========================
    14. Error and Success Messages
 =========================== */
@@ -692,7 +717,65 @@ a {
 
 .text-success {
   color: var(--success-color);
+
+
 }
+
+
+/* ===========================
+   18. Mobile-specific Optimizations
+=========================== */
+/* Prevent text size adjustment on orientation change */
+html {
+  -webkit-text-size-adjust: 100%;
+}
+/* Improve scrolling on iOS */
+body {
+  -webkit-overflow-scrolling: touch;
+}
+/* Disable hover effects on mobile */
+@media (hover: none) {
+  .button:hover, .nav-item:hover {
+    transform: none;
+  }
+}
+/* Optimize inputs for mobile */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+textarea {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+/* Improve mobile form usability */
+select {
+  font-size: 16px; /* Prevent zoom on focus in iOS */
+}
+/* Optimize range input for mobile */
+.range-input::-webkit-slider-thumb {
+  width: 28px;
+  height: 28px;
+}
+.range-input::-moz-range-thumb {
+  width: 28px;
+  height: 28px;
+}
+/* Improve tap targets for checkboxes and radio buttons */
+input[type="checkbox"],
+input[type="radio"] {
+  width: 22px;
+  height: 22px;
+}
+/* Add momentum scrolling for iOS */
+.scroll-container {
+  -webkit-overflow-scrolling: touch;
+}
+/* Disable pull-to-refresh on mobile browsers */
+body {
+  overscroll-behavior-y: contain;
+}
+
 
 /* ===========================
    15. Progress Bar
