@@ -7,7 +7,6 @@ import stripePromise from './Stripe/Stripe';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 
-
 import './styles/global.css';
 
 // Lazy load components
@@ -83,10 +82,9 @@ function App() {
 
 	return (
 		<Elements stripe={stripePromise}>
-			<div className='min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center relative overflow-hidden'>
+			<div className='min-h-screen bg-dark flex items-center justify-center relative overflow-hidden'>
 				<Suspense fallback={<Loading />}>
 					{albumToken ? <GuestNavBar /> : isAuthenticated && <NavBar />}
-
 					<Routes>
 						<Route path='/' element={<AdminProtectedRoute><DashboardPage /></AdminProtectedRoute>} />
 						<Route path='/settings' element={<AdminProtectedRoute><SettingsPage /></AdminProtectedRoute>} />
@@ -107,7 +105,7 @@ function App() {
 				</Suspense>
 				<Toaster />
 				<Analytics /> {/* Added Analytics component for Vercel */}
-				 <SpeedInsights />  {/* Enables Vercel Speed Insights */}
+				<SpeedInsights />  {/* Enables Vercel Speed Insights */}
 			</div>
 		</Elements>
 	);

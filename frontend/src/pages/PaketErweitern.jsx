@@ -7,12 +7,10 @@ import toast from 'react-hot-toast';
 import Layout from '../components/Layout';
 import { FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
 
-
-
 // Option 1: Direct backend URL in development
 const API_URL = import.meta.env.MODE === 'development'
-? import.meta.env.VITE_API_URL_BASE_WITH_API_DEV // Development URL
-: import.meta.env.VITE_API_URL_BASE_WITH_API_PROD; // Production URL
+  ? import.meta.env.VITE_API_URL_BASE_WITH_API_DEV // Development URL
+  : import.meta.env.VITE_API_URL_BASE_WITH_API_PROD; // Production URL
 
 const PaketErweitern = () => {
   const [packages, setPackages] = useState([]);
@@ -48,7 +46,7 @@ const PaketErweitern = () => {
       const response = await axios.post(`${API_URL}/stripe/create-checkout-session`, {
         packageId,
         userId: user._id,
-        selectedAddOns, // Fügen Sie die gewählten Add-ons hier hinzu
+        selectedAddOns,
       });
 
       const result = await stripe.redirectToCheckout({
@@ -80,113 +78,87 @@ const PaketErweitern = () => {
     return (
       <motion.div
         whileHover={{ scale: 1.03 }}
-        className="package-card"
+        className="bg-card rounded-xl p-6 shadow-lg"
       >
-        <h3 className="package-title">{pkg.name}</h3>
-        <p className="package-price">{pkg.price} €</p>
-        <p className="package-description">{pkg.description}</p>
-        <ul className="package-features">
-          <li>
-            <FaCheckCircle className="feature-icon feature-available" />
-            <strong>Fotos & Videos: </strong> {pkg.features.photoLimit === -1 ? ' Unbegrenzt ' : ` Bis zu ${pkg.features.photoLimit}`}
-          </li>
-          <li>
-            <FaCheckCircle className="feature-icon feature-available" />
-            <strong>Alben: </strong> {pkg.features.albumCount}
-          </li>
-          <li>
-            <FaCheckCircle className="feature-icon feature-available" />
-            <strong>Speicherdauer: </strong> {pkg.features.storageDuration} Monate
-          </li>
-          <li>
-            <FaCheckCircle className="feature-icon feature-available" />
-            <strong>Vollständige Album-Downloads: </strong> {pkg.features.fullAlbumDownloads}
-          </li>
-          <li>
-            <FaCheckCircle className="feature-icon feature-available" />
-            <strong>Gästeanzahl: </strong> {pkg.features.guestLimit === -1 ? 'Unbegrenzt' : `Bis zu ${pkg.features.guestLimit}`}
-          </li>
-          <li>
-            {pkg.features.likeFunction ? 
-              <FaCheckCircle className="feature-icon feature-available" /> : 
-              <FaTimesCircle className="feature-icon feature-unavailable" />
-            }
-            <strong>Like Funktion</strong>
-          </li>
-          <li>
-            {pkg.features.commentFunction ? 
-              <FaCheckCircle className="feature-icon feature-available" /> : 
-              <FaTimesCircle className="feature-icon feature-unavailable" />
-            }
-            <strong>Kommentar Funktion</strong>
-          </li>
-          <li>
-            {pkg.features.photoChallenges ? 
-              <FaCheckCircle className="feature-icon feature-available" /> : 
-              <FaTimesCircle className="feature-icon feature-unavailable" />
-            }
-            <strong>Foto Challenges</strong>
-          </li>
-          <li>
-            {pkg.features.fullQualityImages ? 
-              <FaCheckCircle className="feature-icon feature-available" /> : 
-              <FaTimesCircle className="feature-icon feature-unavailable" />
-            }
-            <strong>Bilder & Videos in voller Qualität</strong>
-          </li>
+        <h3 className="text-2xl font-bold text-primary mb-2">{pkg.name}</h3>
+        <p className="text-3xl font-bold text-accent mb-4">{pkg.price} €</p>
+        <p className="text-secondary mb-4">{pkg.description}</p>
+        <ul className="space-y-2 mb-6">
+          {[
+            { label: 'Fotos & Videos', value: pkg.features.photoLimit === -1 ? 'Unbegrenzt' : `Bis zu ${pkg.features.photoLimit}` },
+            { label: 'Alben', value: pkg.features.albumCount },
+            { label: 'Speicherdauer', value: `${pkg.features.storageDuration} Monate` },
+            { label: 'Vollständige Album-Downloads', value: pkg.features.fullAlbumDownloads },
+            { label: 'Gästeanzahl', value: pkg.features.guestLimit === -1 ? 'Unbegrenzt' : `Bis zu ${pkg.features.guestLimit}` },
+            { label: 'Like Funktion', value: pkg.features.likeFunction },
+            { label: 'Kommentar Funktion', value: pkg.features.commentFunction },
+            { label: 'Foto Challenges', value: pkg.features.photoChallenges },
+            { label: 'Bilder & Videos in voller Qualität', value: pkg.features.fullQualityImages }
+          ].map(({ label, value }, index) => (
+            <li key={index} className="flex items-start">
+              {typeof value === 'boolean' ? (
+                value ? (
+                  <FaCheckCircle className="text-green-500 mr-2 mt-1" />
+                ) : (
+                  <FaTimesCircle className="text-red-500 mr-2 mt-1" />
+                )
+              ) : (
+                <FaCheckCircle className="text-green-500 mr-2 mt-1" />
+              )}
+              <span>
+                <strong>{label}:</strong> {typeof value === 'boolean' ? '' : value}
+              </span>
+            </li>
+          ))}
         </ul>
         {pkg.addOns && pkg.addOns.length > 0 && (
-          <div className="package-addons">
-            <h4>Verfügbare Add-ons:</h4>
-            <ul>
+          <div className="mb-6">
+            <h4 className="text-lg font-semibold text-primary mb-2">Verfügbare Add-ons:</h4>
+            <ul className="space-y-2">
               {pkg.addOns.map((addon) => (
-                <li key={addon._id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', marginBottom: '10px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <FaCheckCircle className="feature-icon feature-available" />
-                    <strong style={{ marginLeft: '8px' }}>{addon.name}: </strong>
-                    <strong style={{ marginLeft: '4px' }}>{addon.price} € </strong>
+                <li key={addon._id} className="flex flex-col">
+                  <div className="flex items-center">
+                    <FaCheckCircle className="text-green-500 mr-2" />
+                    <strong>{addon.name}:</strong>
+                    <span className="ml-1 font-semibold">{addon.price} €</span>
                   </div>
-                  <p style={{ marginLeft: '48px' }}>{addon.description}</p> {/* Beschreibung in einer neuen Zeile */}
+                  <p className="text-secondary ml-6">{addon.description}</p>
                 </li>
               ))}
             </ul>
           </div>
         )}
         <button
-          onClick={() => handlePackageSelection(pkg._id, selectedAddOns)} // Pass die ausgewählten Add-ons weiter
-          className="package-button"
+          onClick={() => handlePackageSelection(pkg._id, selectedAddOns)}
+          className="button button-primary w-full"
         >
           {pkg.price > 0 ? 'Jetzt upgraden' : 'Kostenlos starten'}
         </button>
       </motion.div>
     );
-  };
-
-  if (loading) {
-    return <Layout><div className="loading-message">Laden...</div></Layout>;
-  }
-
-  if (error) {
-    return <Layout><div className="error-message">{error}</div></Layout>;
-  }
-
-  return (
+    };
+    if (loading) {
+    return <Layout><div className="text-center text-lg text-secondary">Laden...</div></Layout>;
+    }
+    if (error) {
+    return <Layout><div className="text-center text-lg text-error">{error}</div></Layout>;
+    }
+    return (
     <Layout>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="packages-container"
+        className="p-4 md:p-8 pb-20"
       >
-        <h1 className="page-title">Wählen Sie Ihr Paket</h1>
-        <div className="packages-grid">
+        <h1 className="text-4xl font-bold text-center text-gradient mb-8">Wählen Sie Ihr Paket</h1>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {packages.map((pkg) => (
             <PackageCard key={pkg._id} pkg={pkg} />
           ))}
         </div>
       </motion.div>
     </Layout>
-  );
-};
-
+    );
+    };
 export default PaketErweitern;

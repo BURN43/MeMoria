@@ -21,7 +21,7 @@ const MediaModal = lazy(() => import('../components/MediaModal'));
 // Spinner component
 const Spinner = () => (
   <div className="flex justify-center items-center">
-    <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-purple-500"></div>
+    <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-accent"></div>
   </div>
 );
 
@@ -29,7 +29,6 @@ const Spinner = () => (
 const UploadPopup = ({ onSubmit, onClose }) => {
   const [username, setUsername] = useState('');
   const [greetingText, setGreetingText] = useState('');
-
   const handleSubmit = () => {
     if (username.trim()) {
       onSubmit(username, greetingText);
@@ -41,30 +40,30 @@ const UploadPopup = ({ onSubmit, onClose }) => {
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-75 z-50">
-      <div className="bg-white p-8 rounded shadow-lg max-w-md w-full mx-4">
-        <h2 className="text-2xl font-semibold mb-4 text-gray-900">Upload Details</h2>
+      <div className="bg-card p-8 rounded-lg shadow-lg max-w-md w-full mx-4">
+        <h2 className="text-2xl font-semibold mb-4 text-primary">Upload Details</h2>
         <input
           type="text"
           placeholder="Your username"
-          className="border border-gray-300 rounded p-3 focus:outline-none focus:ring-2 focus:ring-purple-500 w-full mb-4 bg-gray-100 text-gray-800 placeholder-gray-500"
+          className="input mb-4"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
         />
         <textarea
           placeholder="Share a greeting (optional)"
-          className="border border-gray-300 rounded p-3 focus:outline-none focus:ring-2 focus:ring-purple-500 w-full mb-5 bg-gray-100 text-gray-800 placeholder-gray-500 h-24 resize-none"
+          className="input mb-5 h-24 resize-none"
           value={greetingText}
           onChange={(e) => setGreetingText(e.target.value)}
         />
         <div className="flex justify-end">
           <button 
-            className="bg-purple-600 text-white py-2 px-4 rounded-lg mr-2 hover:bg-purple-700 transition-colors" 
+            className="button button-primary mr-2" 
             onClick={handleSubmit}
           >
             Upload
           </button>
           <button 
-            className="py-2 px-4 text-gray-600 hover:text-gray-900 transition-colors" 
+            className="button button-secondary" 
             onClick={onClose}
           >
             Cancel
@@ -73,7 +72,7 @@ const UploadPopup = ({ onSubmit, onClose }) => {
       </div>
     </div>
   );
-};
+  };
 
 // ProfilePicture component
 const ProfilePicture = React.memo(({ isAdmin, userId, guestAlbumToken }) => {
@@ -132,7 +131,7 @@ const ProfilePicture = React.memo(({ isAdmin, userId, guestAlbumToken }) => {
     }
   }, []);
 
-  return (
+return (
     <div className="relative w-40 h-40 mx-auto mb-6">
       {loading ? (
         <div className="w-40 h-40 flex items-center justify-center">
@@ -142,12 +141,12 @@ const ProfilePicture = React.memo(({ isAdmin, userId, guestAlbumToken }) => {
         <div className="relative">
           <img
             src={profilePic}
-            className="w-40 h-40 rounded-full object-cover object-center border-4 border-white shadow-lg"
+            className="w-40 h-40 rounded-full object-cover object-center border-4 border-light shadow-lg"
             alt="Profile"
           />
           {isAdmin && (
-            <div className="absolute inset-0 flex items-center justify-center bg-purple-200 bg-opacity-75 rounded-full opacity-0 hover:opacity-100 transition-opacity duration-300">
-              <span className="text-purple-600 text-sm">Change Profile Picture</span>
+            <div className="absolute inset-0 flex items-center justify-center bg-accent bg-opacity-75 rounded-full opacity-0 hover:opacity-100 transition-opacity duration-100">
+              <span className="text-primary text-sm">Change Profile Picture</span>
               <input
                 type="file"
                 accept="image/*"
@@ -160,26 +159,26 @@ const ProfilePicture = React.memo(({ isAdmin, userId, guestAlbumToken }) => {
       ) : (
         <div>
           {isAdmin ? (
-            <label className="relative flex flex-col items-center justify-center w-full cursor-pointer aspect-square bg-purple-200 rounded-full border-2 border-dashed border-purple-600">
+            <label className="relative flex flex-col items-center justify-center w-full cursor-pointer aspect-square bg-accent rounded-full border-2 border-dashed border-accent">
               <input
                 type="file"
                 accept="image/*"
                 className="absolute z-10 w-full h-full opacity-0 cursor-pointer"
                 onChange={handleUpload}
               />
-              <FaPlus className="text-3xl text-purple-600" />
-              <div className="mt-1 text-xs text-purple-600">Add Profile Picture</div>
+              <FaPlus className="text-3xl text-primary" />
+              <div className="mt-1 text-xs text-primary">Add Profile Picture</div>
             </label>
           ) : (
             <img
               src="/default-profile.png"
-              className="w-40 h-40 rounded-full object-cover object-center border-4 border-white shadow-lg"
+              className="w-40 h-40 rounded-full object-cover object-center border-4 border-light shadow-lg"
               alt="Default Profile"
             />
           )}
         </div>
       )}
-      {error && <div className="text-red-500 text-sm mt-2">{error}</div>}
+      {error && <div className="text-error text-sm mt-2">{error}</div>}
     </div>
   );
 });
@@ -574,16 +573,19 @@ const AlbumPage = () => {
             userId={user?._id}
             guestAlbumToken={guestAlbumToken}
           />
-          <h1 className="text-4xl font-extrabold mb-2 text-gradient uppercase">
+          <h1 className="text-4xl font-bold mb-2 text-gradient uppercase">
             {albumData.title}
           </h1>
-          <p className="text-lg text-purple-400">{albumData.greetingText}</p>
+          <p className="text-lg text-accent">{albumData.greetingText}</p>
         </div>
-
-        {errorMessage && <div className="text-red-500 text-center mb-4">{errorMessage}</div>}
+        {errorMessage && <div className="text-error text-center mb-4">{errorMessage}</div>}
         {isUploading && (
-          <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4 dark:bg-gray-700">
-            <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: `${uploadProgress}%` }}></div>
+          <div className="w-full mb-4">
+            <progress 
+              className="progress-primary"
+              value={uploadProgress}
+              max="100"
+            ></progress>
           </div>
         )}
         {!loadingSettings && (
@@ -600,6 +602,7 @@ const AlbumPage = () => {
               onDelete={handleDelete}
               showChallengeTitle={true}
               showUploaderUsername={true}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
             />
           </Suspense>
         )}
@@ -626,6 +629,6 @@ const AlbumPage = () => {
       )}
     </Layout>
   );
-};
+  };
 
 export default React.memo(AlbumPage);

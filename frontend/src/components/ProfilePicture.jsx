@@ -97,7 +97,7 @@ const ProfilePicture = ({ isAdmin, userId }) => {
     }
   };
 
-  return (
+ return (
     <div className="relative w-40 h-40 mx-auto mb-6">
       {loading ? (
         <div className="w-40 h-40 flex items-center justify-center">
@@ -107,12 +107,12 @@ const ProfilePicture = ({ isAdmin, userId }) => {
         <div className="relative">
           <img
             src={profilePic}
-            className="w-40 h-40 rounded-full object-cover object-center border-4 border-white shadow-lg"
+            className="w-40 h-40 rounded-full object-cover object-center border-4 border-light shadow-lg"
             alt="Profile"
           />
           {isAdmin && (
-            <div className="absolute inset-0 flex items-center justify-center bg-purple-200 bg-opacity-75 rounded-full opacity-0 hover:opacity-100 transition-opacity duration-300">
-              <span className="text-purple-600 text-sm">Profilbild ändern</span>
+            <div className="absolute inset-0 flex items-center justify-center bg-accent bg-opacity-75 rounded-full opacity-0 hover:opacity-100 transition-opacity duration-300">
+              <span className="text-primary text-sm">Change Profile Picture</span>
               <input
                 type="file"
                 accept="image/*"
@@ -125,26 +125,26 @@ const ProfilePicture = ({ isAdmin, userId }) => {
       ) : (
         <div>
           {isAdmin ? (
-            <label className="relative flex flex-col items-center justify-center w-full cursor-pointer aspect-square bg-purple-200 rounded-full border-2 border-dashed border-purple-600">
+            <label className="relative flex flex-col items-center justify-center w-full cursor-pointer aspect-square bg-accent rounded-full border-2 border-dashed border-primary">
               <input
                 type="file"
                 accept="image/*"
                 className="absolute z-10 w-full h-full opacity-0 cursor-pointer"
                 onChange={handleUpload}
               />
-              <FaPlus className="text-3xl text-purple-600" />
-              <div className="mt-1 text-xs text-purple-600">Profilbild hinzufügen</div>
+              <FaPlus className="text-3xl text-primary" />
+              <div className="mt-1 text-xs text-primary">Add Profile Picture</div>
             </label>
           ) : (
             <img
               src="/default-profile.png"
-              className="w-40 h-40 rounded-full object-cover object-center border-4 border-white shadow-lg"
+              className="w-40 h-40 rounded-full object-cover object-center border-4 border-light shadow-lg"
               alt="Default Profile"
             />
           )}
         </div>
       )}
-      {error && <div className="text-red-500 text-sm mt-2">{error}</div>}
+      {error && <div className="text-error text-sm mt-2">{error}</div>}
     </div>
   );
 };

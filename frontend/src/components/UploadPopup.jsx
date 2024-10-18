@@ -13,40 +13,40 @@ const UploadPopup = ({ onSubmit, onClose }) => {
     }
   };
 
-  return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-75 z-50">
-      <div className="bg-white p-8 rounded shadow-lg max-w-md w-full mx-4">
-        <h2 className="text-2xl font-semibold mb-4 text-gray-900">Upload Details</h2>
-        <input
-          type="text"
-          placeholder="Your username"
-          className="border border-gray-300 rounded p-3 focus:outline-none focus:ring-2 focus:ring-purple-500 w-full mb-4 bg-gray-100 text-gray-800 placeholder-gray-500"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-        />
-        <textarea
-          placeholder="Share a greeting (optional)"
-          className="border border-gray-300 rounded p-3 focus:outline-none focus:ring-2 focus:ring-purple-500 w-full mb-5 bg-gray-100 text-gray-800 placeholder-gray-500 h-24 resize-none"
-          value={greetingText}
-          onChange={(e) => setGreetingText(e.target.value)}
-        />
-        <div className="flex justify-end">
-          <button 
-            className="bg-purple-600 text-white py-2 px-4 rounded-lg mr-2 hover:bg-purple-700 transition-colors" 
-            onClick={handleSubmit}
-          >
-            Upload
-          </button>
-          <button 
-            className="py-2 px-4 text-gray-600 hover:text-gray-900 transition-colors" 
-            onClick={onClose}
-          >
-            Cancel
-          </button>
+   return (
+      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-75 z-50">
+        <div className="bg-card p-8 rounded-xl shadow-lg max-w-md w-full mx-4">
+          <h2 className="text-2xl font-semibold mb-4 text-primary">Upload Details</h2>
+          <input
+            type="text"
+            placeholder="Your username"
+            className="input mb-4"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+          />
+          <textarea
+            placeholder="Share a greeting (optional)"
+            className="input h-24 resize-none mb-5"
+            value={greetingText}
+            onChange={(e) => setGreetingText(e.target.value)}
+          />
+          <div className="flex justify-end">
+            <button 
+              className="button button-primary mr-2" 
+              onClick={handleSubmit}
+            >
+              Upload
+            </button>
+            <button 
+              className="button button-secondary" 
+              onClick={onClose}
+            >
+              Cancel
+            </button>
+          </div>
         </div>
       </div>
-    </div>
-  );
-};
+    );
+  };
 
 export default UploadPopup;

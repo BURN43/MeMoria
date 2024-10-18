@@ -14,6 +14,7 @@ const ProfileDropdown = () => {
   // Define paths where ProfileDropdown should not appear
   const restrictedPaths = ['/login', '/signup', '/forgot-password', '/verify-email'];
 
+
   // Check if the current path is restricted
   const isRestricted = restrictedPaths.includes(location.pathname);
 
@@ -37,32 +38,32 @@ const ProfileDropdown = () => {
   };
 
   return (
-    <div className="relative z-50">
-      <div
-        onClick={toggleDropdown}
-        className="cursor-pointer text-3xl text-purple-400 hover:text-purple-400 transition-colors duration-300"
-      >
-        <FaUserCircle className="hover:scale-110 transition-transform duration-300" />
-      </div>
-
-      {open && (
-        <div className="absolute right-0 mt-2 w-48 bg-gray-800 text-white rounded-lg shadow-lg border border-gray-700 z-50">
-          <button
-            onClick={handleLogout}
-            className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-700 hover:text-purple-400 transition-colors duration-300"
-          >
-            Logout
-          </button>
-          <button
-            onClick={handleForgotPassword}
-            className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-700 hover:text-purple-400 transition-colors duration-300"
-          >
-            Forgot Password
-          </button>
+      <div className="relative z-50">
+        <div
+          onClick={toggleDropdown}
+          className="cursor-pointer text-3xl text-primary hover:text-secondary transition-colors duration-300"
+        >
+          <FaUserCircle className="hover:scale-110 transition-transform duration-300" />
         </div>
-      )}
-    </div>
-  );
-};
+        {open && (
+          <div className="absolute right-0 mt-2 w-48 bg-card rounded-lg shadow-lg border border-secondary">
+            <button
+              onClick={handleLogout}
+              className="block w-full text-left px-4 py-2 text-sm text-secondary hover:bg-primary hover:text-button transition-colors duration-300"
+            >
+              Logout
+            </button>
+            <button
+              onClick={handleForgotPassword}
+              className="block w-full text-left px-4 py-2 text-sm text-secondary hover:bg-primary hover:text-button transition-colors duration-300"
+            >
+              Forgot Password
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  };
+
 
 export default ProfileDropdown;

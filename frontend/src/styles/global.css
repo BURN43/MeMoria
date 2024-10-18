@@ -1,19 +1,373 @@
-/* Define CSS Variables for base colors and theming */
+/* ===========================
+   1. Base Theme Variables
+=========================== */
+
 :root {
-  --primary-color: #3b82f6;
-  --secondary-color: #8b5cf6;
-  --accent-color: #f59e0b;
-  --bg-dark: #1f2937;
+  --primary-color: #757575;
+  --secondary-color: #a9a9a9;
+  --accent-color: #dcdcdc;
+  --button-color: #757575;
+  --bg-dark: #e3dddd;
   --bg-light: #ffffff;
-  --text-light: #e5e7eb;
-  --text-dark: #374151;
-  --bg-card: rgba(40, 51, 67, 0.8);
+  --text-light: #303030;
+  --text-dark: #000000;
+  --bg-card: rgba(229, 229, 229, 0.8);
+  --countdown-bg-color: #f0f0f0;
+  --countdown-text-color: #303030;
+  --text-primary: #6f6767;
+  --text-secondary: #615656;
+  --text-accent: #6f6767;
+  --text-button: #ffffff;
+  --text-gradient-color: #6f6767;
+  --input-icon-color: #000000;
+  --error-color: #ff0000;
+  --success-color: #28a745;
+  --warning-color: #ffc107;
+  --info-color: #6c757d;
+  --border-color: #bdbdbd;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+  --hover-opacity: 0.8;
+  --transition-duration: 0.3s;
+  --border-radius: 0.375rem;
+  --input-bg: #f8f9fa;
+  --input-border: #ced4da;
+  --input-focus-border: #b0b0b0;
+  --input-focus-shadow: rgba(0, 0, 0, 0.1);
 }
 
-/* Base Styles */
+/* ===========================
+   2. Theme Variants
+=========================== */
+
+/* Hochzeit Theme */
+[data-theme="hochzeit"] {
+  --primary-color: #a89b94;
+  --secondary-color: #f7cac9;
+  --accent-color: #e7d8c3;
+  --button-color: #a89b94;
+  --bg-dark: #cbc4c2;
+  --bg-light: #ffffff;
+  --text-light: #5a5351;
+  --text-dark: #000000;
+  --bg-card: rgb(237, 234, 233, 0.8);
+  --countdown-bg-color: #dfdad7;
+  --countdown-text-color: #5a5351;
+  --text-primary: #5a5351;
+  --text-secondary: #1f1f1f;
+  --text-accent: #090601;
+  --text-button: #ffffff;
+  --text-gradient-color: #5a5351;
+  --input-icon-color: #000000;
+  --error-color: #ff0000;
+  --success-color: #28a745;
+  --warning-color: #ffc107;
+  --info-color: #17a2b8;
+  --border-color: #ced4da;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+  --hover-opacity: 0.8;
+  --transition-duration: 0.3s;
+  --border-radius: 0.375rem;
+  --input-bg: #f8f9fa;
+  --input-border: #ced4da;
+  --input-focus-border: #80bdff;
+  --input-focus-shadow: rgba(0, 123, 255, 0.25);
+}
+
+/* Verlobung Theme */
+[data-theme="verlobung"] {
+  --primary-color: #b9a1d1; /* Soft Lavender */
+  --secondary-color: #af66ea; /* Lighter Lavender */
+  --accent-color: #d8d2e0; /* Muted Lavender Gray */
+  --button-color: #b9a1d1;
+  --bg-dark: #cbb7df; /* Lavender Tint */
+  --bg-light: #ffffff; /* White */
+  --text-light: #5b5362; /* Dark Lavender Gray */
+  --text-dark: #000000; /* Black */
+  --bg-card: rgba(230, 222, 240, 0.9); /* Soft Lavender for Cards */
+  --countdown-bg-color: #e6d6f2; 
+  --countdown-text-color: #5b5362;
+  --text-primary: #a46cd5;
+  --text-secondary: #1f1f1f;
+  --text-accent: #a46cd5;
+  --text-button: #ffffff;
+  --text-gradient-color: #a46cd5;
+  --input-icon-color: #000000;
+  --error-color: #ff0000;
+  --success-color: #28a745;
+  --warning-color: #ffc107;
+  --info-color: #6b8e23; /* Olive for Information Highlights */
+  --border-color: #d0c4df; /* Soft Grayish Lavender */
+  --shadow-color: rgba(0, 0, 0, 0.1);
+  --hover-opacity: 0.85;
+  --transition-duration: 0.3s;
+  --border-radius: 0.375rem;
+  --input-bg: #f8f9fa; /* Light Gray Background */
+  --input-border: #d0c4df;
+  --input-focus-border: #b9a1d1;
+  --input-focus-shadow: rgba(185, 161, 209, 0.25);
+}
+
+/* Henna-Abend Theme - Warm Spice */
+[data-theme="henna"] {
+  --primary-color: #d6b4e8; /* Soft Lavender */
+  --secondary-color: #e6cfee; /* Light Lavender */
+  --accent-color: #f3e7f7; /* Pastel Purple */
+  --button-color: #d6b4e8;
+  --bg-dark: #f0e3f3; /* Light Lavender Gray */
+  --bg-light: #ffffff; /* White */
+  --text-light: #4a3d54; /* Deep Lavender Gray */
+  --text-dark: #000000;
+  --bg-card: rgba(236, 223, 245, 0.9); /* Light Lavender Card Background */
+  --countdown-bg-color: #e6cfee;
+  --countdown-text-color: #4a3d54;
+  --text-primary: #a46cd5;
+  --text-secondary: #1f1f1f;
+  --text-accent: #d4b0e8;
+  --text-button: #ffffff;
+  --text-gradient-color: #d4b0e8;
+  --input-icon-color: #000000;
+  --error-color: #e57373; /* Light Red */
+  --success-color: #28a745;
+  --warning-color: #ffc107;
+  --info-color: #8a2be2; /* Blue Violet */
+  --border-color: #c6a4d8; /* Light Purple */
+  --shadow-color: rgba(0, 0, 0, 0.1);
+  --hover-opacity: 0.85;
+  --transition-duration: 0.3s;
+  --border-radius: 0.5rem;
+  --input-bg: #f7f0f9; /* Light Purple Tint */
+  --input-border: #c6a4d8;
+  --input-focus-border: #d6b4e8;
+  --input-focus-shadow: rgba(214, 180, 232, 0.25);
+}
+
+/* Geburtstag Theme - Festive Pop */
+[data-theme="kunst"] {
+  --primary-color: #2e3a59; /* Midnight Navy */
+  --secondary-color: #d4af37; /* Gold */
+  --accent-color: #f0e6d6; /* Soft Beige */
+  --button-color: #2e3a59;
+  --bg-dark: #394665; /* Slightly Lighter Navy */
+  --bg-light: #ffffff; /* White */
+  --text-light: #e8c77b; /* Gold Accent */
+  --text-dark: #000000; /* White */
+  --bg-card: rgba(62, 74, 109, 0.9); /* Light Navy Card Background */
+  --countdown-bg-color: #f0e6d6;
+  --countdown-text-color: #2e3a59;
+  --text-primary: #e8c77b;
+  --text-secondary: #f5f5f5;
+  --text-accent: #fff1bd;
+  --text-button: #ffffff;
+  --text-gradient-color: #e8c77b;
+  --input-icon-color: #ffffff;
+  --error-color: #e57373; /* Light Red */
+  --success-color: #28a745;
+  --warning-color: #ffc107;
+  --info-color: #6c757d; /* Cool Gray */
+  --border-color: #d4af37; /* Gold Border */
+  --shadow-color: rgba(0, 0, 0, 0.2);
+  --hover-opacity: 0.85;
+  --transition-duration: 0.3s;
+  --border-radius: 0.375rem;
+  --input-bg: #e6e6e6; /* Light Beige */
+  --input-border: #e8c77b;
+  --input-focus-border: #d4af37;
+  --input-focus-shadow: rgba(212, 175, 55, 0.25);
+}
+
+
+
+
+/* Geburtstag Theme - Festive Pop */
+[data-theme="geburtstag"] {
+  --primary-color: #00bcd4; /* Bold Cyan */
+  --secondary-color: #f4d35e; /* Muted Yellow */
+  --accent-color: #f7e8c8; /* Soft Cream Yellow */
+  --button-color: #00bcd4;
+  --bg-dark: #eaf7f9; /* Very Light Cyan */
+  --bg-light: #ffffff; /* White */
+  --text-light: #004f5d; /* Dark Cyan */
+  --text-dark: #000000; /* Black */
+  --bg-card: rgba(224, 248, 250, 0.9); /* Light Cyan for Cards */
+  --countdown-bg-color: #f4d35e;
+  --countdown-text-color: #004f5d;
+  --text-primary: #004f5d;
+  --text-secondary: #1f1f1f;
+  --text-accent: #00bcd4;
+  --text-button: #ffffff;
+  --text-gradient-color: #00bcd4;
+  --input-icon-color: #000000;
+  --error-color: #ff6b6b; /* Red Coral */
+  --success-color: #28a745;
+  --warning-color: #ffc107;
+  --info-color: #00bcd4; /* Bold Cyan */
+  --border-color: #0097a7; /* Darker Cyan Border */
+  --shadow-color: rgba(0, 0, 0, 0.1);
+  --hover-opacity: 0.8;
+  --transition-duration: 0.3s;
+  --border-radius: 0.375rem;
+  --input-bg: #e0f7fa; /* Very Light Cyan */
+  --input-border: #0097a7;
+  --input-focus-border: #00bcd4;
+  --input-focus-shadow: rgba(0, 188, 212, 0.25);
+}
+
+/* Babyshower Theme */
+[data-theme="babyshower"] {
+  --primary-color: #eae2d6; /* Pearl */
+  --secondary-color: #e0b873; /* Soft Gold */
+  --accent-color: #fefbf6; /* Very Light Cream */
+  --button-color: #e0b873;
+  --bg-dark: #f7f5f0; /* Light Pearl */
+  --bg-light: #ffffff; /* White */
+  --text-light: #5e5a50; /* Warm Gray */
+  --text-dark: #000000; /* Black */
+  --bg-card: rgba(234, 226, 214, 0.9); /* Pearl Card Background */
+  --countdown-bg-color: #e6d7b0; /* Soft Golden Beige */
+  --countdown-text-color: #5e5a50;
+  --text-primary: #5e5a50;
+  --text-secondary: #1f1f1f;
+  --text-accent: #2e2b25;
+  --text-button: #ffffff;
+  --text-gradient-color: #5e5a50;
+  --input-icon-color: #000000;
+  --error-color: #e57373; /* Light Red */
+  --success-color: #28a745;
+  --warning-color: #ffc107;
+  --info-color: #c2a873; /* Warm Gold */
+  --border-color: #cbb08b; /* Golden Pearl Border */
+  --shadow-color: rgba(0, 0, 0, 0.1);
+  --hover-opacity: 0.85;
+  --transition-duration: 0.3s;
+  --border-radius: 0.375rem;
+  --input-bg: #faf8f4; /* Very Light Cream */
+  --input-border: #cbb08b;
+  --input-focus-border: #e0b873;
+  --input-focus-shadow: rgba(224, 184, 115, 0.25);
+}
+
+/* Jahrestag Theme */
+[data-theme="jahrestag"] {
+  --primary-color: #8e44ad;
+  --secondary-color: #9b59b6;
+  --accent-color: #f4ecf7;
+  --button-color: #8e44ad;
+  --bg-dark: #faf5fd;
+  --bg-light: #ffffff;
+  --text-light: #34495e;
+  --text-dark: #2c3e50;
+  --bg-card: rgba(142, 68, 173, 0.1);
+  --countdown-bg-color: #e8daef;
+  --countdown-text-color: #8e44ad;
+  --text-primary: #4a4a4a;
+  --text-secondary: #666666;
+  --text-accent: #9b59b6;
+  --text-button: #ffffff;
+  --text-gradient-color: #9b59b6;
+  --input-icon-color: #8e44ad;
+  --error-color: #e74c3c;
+  --success-color: #2ecc71;
+  --warning-color: #f39c12;
+  --info-color: #3498db;
+  --border-color: #d2b4de;
+  --shadow-color: rgba(142, 68, 173, 0.1);
+  --hover-opacity: 0.8;
+  --transition-duration: 0.3s;
+  --border-radius: 0.375rem;
+  --input-bg: #faf5fd;
+  --input-border: #d2b4de;
+  --input-focus-border: #9b59b6;
+  --input-focus-shadow: rgba(142, 68, 173, 0.25);
+}
+
+/* Taufe Theme */
+
+[data-theme="taufe"] {
+  --primary-color: #ffb6c1; /* Soft Baby Pink */
+  --secondary-color: #f17eb0; /* Light Pink Blush */
+  --accent-color: #ffffff; /* Crisp White */
+  --button-color: #e298a3;
+  --bg-dark: #f7d4da; /* Light Rosy Pink */
+  --bg-light: #ffffff; /* White */
+  --text-light: #91696b; /* Soft Grayish Pink */
+  --text-dark: #000000; /* Black */
+  --bg-card: rgb(251, 193, 201, 0.9); /* Soft Pink Card Background */
+  --countdown-bg-color: #ffe0e5; /* Very Light Pink */
+  --countdown-text-color: #4d3a3b;
+  --text-primary: #4d3a3b;
+  --text-secondary: #1f1f1f;
+  --text-accent: #f17eb0;
+  --text-button: #ffffff;
+  --text-gradient-color: #f17eb0;
+  --input-icon-color: #000000;
+  --error-color: #e57373; /* Light Red */
+  --success-color: #28a745;
+  --warning-color: #ffc107;
+  --info-color: #ff999f; /* Soft Pink */
+  --border-color: #ffc0cb; /* Light Pink Border */
+  --shadow-color: rgba(0, 0, 0, 0.1);
+  --hover-opacity: 0.9;
+  --transition-duration: 0.3s;
+  --border-radius: 0.375rem;
+  --input-bg: #fff4f5; /* Very Light Pink */
+  --input-border: #ffc0cb;
+  --input-focus-border: #ffb6c1;
+  --input-focus-shadow: rgba(255, 182, 193, 0.25);
+}
+
+
+
+
+/* ===========================
+   3. Theme Switcher Styling
+=========================== */
+
+.theme-switcher {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  align-items: center;
+}
+
+.theme-bubble {
+  position: relative;
+}
+
+.theme-bubble input[type="radio"] {
+  display: none;
+}
+
+.theme-bubble .bubble {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: inline-block;
+  transition: transform var(--transition-duration) ease;
+}
+
+.theme-bubble .bubble:hover {
+  transform: scale(1.1);
+}
+
+/* Colors for each theme bubble */
+.theme-bubble:nth-child(1) .bubble { background-color: #d6d6d6; }
+.theme-bubble:nth-child(2) .bubble { background-color: #d2bbb8; }
+.theme-bubble:nth-child(3) .bubble { background-color: #b0a5c5; }
+.theme-bubble:nth-child(4) .bubble { background-color: #bfa9d0; }
+.theme-bubble:nth-child(5) .bubble { background-color: #1d3fa5; }
+.theme-bubble:nth-child(6) .bubble { background-color: #8ae8f5; }
+.theme-bubble:nth-child(7) .bubble { background-color: #e1c066; }
+.theme-bubble:nth-child(8) .bubble { background-color: #cfadf0; }
+.theme-bubble:nth-child(9) .bubble { background-color: #f06076; }
+
+/* ===========================
+   4. Global Reset and Base Styles
+=========================== */
+
 html {
   box-sizing: border-box;
-  -webkit-text-size-adjust: 100%; /* Prevent font scaling in landscape */
+  -webkit-text-size-adjust: 100%;
 }
 
 *, *:before, *:after {
@@ -30,46 +384,227 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* ===========================
+   5. Typography
+=========================== */
+
 h1, .heading-xl {
-  font-size: 1.5rem;
+  font-size: 2.5rem; /* Larger for wedding theme emphasis */
   font-weight: bold;
   line-height: 1.2;
+  font-family: 'Cinzel Decorative', serif; /* Elegant font for headings */
+  letter-spacing: 0.05rem; /* Elegant letter spacing */
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1); /* Soft text shadow for depth */
 }
 
 h2, .heading-lg {
-  font-size: 1.25rem;
+  font-size: 1.75rem; /* Slightly larger for distinction */
   font-weight: bold;
   line-height: 1.3;
+  font-family: 'Playfair Display', serif; /* Sophisticated serif for subheadings */
 }
 
 p, .text-base {
   font-size: 1rem;
   color: var(--text-light);
-  line-height: 1.6;
+  line-height: 1.7; /* Comfortable line spacing for readability */
+  font-family: 'Playfair Display', serif; /* Elegant serif for body text */
 }
+
+
+/* General Text Color Class */
+.text-primary { color: var(--text-primary); }
+.text-secondary { color: var(--text-secondary); }
+.text-accent { color: var(--text-accent); }
+.text-button { color: var(--text-button); }
+
+/* New Typography Classes */
+.text-xs { font-size: 0.75rem; line-height: 1rem; }
+.text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+.text-base { font-size: 1rem; line-height: 1.5rem; }
+.text-lg { font-size: 1.125rem; line-height: 1.75rem; }
+.text-xl { font-size: 1.25rem; line-height: 1.75rem; }
+.text-2xl { font-size: 1.5rem; line-height: 2rem; }
+.text-3xl { font-size: 1.875rem; line-height: 2.25rem; }
+.text-4xl { font-size: 2.25rem; line-height: 2.5rem; }
+
+.font-light { font-weight: 300; }
+.font-normal { font-weight: 400; }
+.font-medium { font-weight: 500; }
+.font-semibold { font-weight: 600; }
+.font-bold { font-weight: 700; }
+
+/* ===========================
+   6. Links and Buttons
+=========================== */
 
 a {
   color: var(--primary-color);
   text-decoration: none;
-  -webkit-tap-highlight-color: transparent; /* Remove tap highlight on iOS */
+  -webkit-tap-highlight-color: transparent;
 }
 
-/* Card and Overlay Styles */
+.button {
+  display: inline-block;
+  padding: 0.75rem 2rem;
+  color: var(--text-button);
+  border-radius: 9999px;
+  background: var(--primary-color);
+  transition: transform var(--transition-duration) ease, background var(--transition-duration) ease;
+  cursor: pointer;
+  text-align: center;
+}
+
+.button:hover, .button:active {
+  transform: scale(1.05);
+}
+
+.button-primary {
+  background-color: var(--button-color);
+  color: var(--text-button);
+}
+
+.button-primary:hover {
+  background-color: var(--secondary-color);
+}
+
+.button-secondary {
+  background-color: var(--secondary-color);
+  color: var(--text-button);
+}
+
+.button-secondary:hover {
+  opacity: var(--hover-opacity);
+}
+
+.button-error {
+  background-color: var(--error-color);
+  color: var(--text-button);
+}
+
+.button-error:hover {
+  opacity: var(--hover-opacity);
+}
+
+/* ===========================
+   7. Input Fields and Forms
+=========================== */
+
+.input, textarea {
+  width: 100%;
+  padding: 0.75rem;
+  margin: 0.5rem 0;
+  border: 1px solid var(--input-border);
+  border-radius: var(--border-radius);
+  background-color: var(--input-bg);
+  color: var(--text-dark);
+  transition: border-color var(--transition-duration) ease;
+}
+
+.input:focus, textarea:focus {
+  border-color: var(--input-focus-border);
+  outline: none;
+  box-shadow: 0 0 0 0.2rem var(--input-focus-shadow);
+}
+
+/* Checkbox Styles */
+.form-checkbox {
+  width: 1.5rem;
+  height: 1.5rem;
+  accent-color: var(--primary-color);
+}
+
+/* ===========================
+   8. Cards and Overlays
+=========================== */
+
 .bg-card {
   background-color: var(--bg-card);
-  border-radius: 0.5rem;
+  border-radius: var(--border-radius);
   padding: 1rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 4px 6px var(--shadow-color);
   backdrop-filter: blur(10px);
 }
 
-/* Responsive Layouts */
-.container {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 1rem;
+/* ===========================
+   9. Package Card Styling
+=========================== */
+
+.package-card {
+  background-color: var(--bg-card);
+  color: var(--text-light);
+  border-radius: 12px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 10px 15px -3px var(--shadow-color), 0 4px 6px -2px var(--shadow-color);
+  transition: transform var(--transition-duration) ease;
+}
+
+.package-card:hover {
+  transform: scale(1.03);
+}
+
+/* Card Titles and Descriptions */
+.package-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--primary-color);
+  margin-bottom: 8px;
+}
+
+.package-price {
+  font-size: 2rem;
+  font-weight: bold;
+  color: var(--accent-color);
+  margin-bottom: 24px;
+}
+
+.package-description,
+.package-features li {
+  color: var(--text-light);
+}
+
+/* ===========================
+   10. Countdown Box Styling
+=========================== */
+
+.countdown-box {
+  padding: 1rem;
+  background-color: var(--countdown-bg-color);
+  color: var(--countdown-text-color);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--border-color);
+  text-align: center;
+}
+
+/* ===========================
+   11. Responsive Layouts
+=========================== */
+
+@media (min-width: 768px) {
+  h1, .heading-xl { font-size: 1.875rem; }
+  h2, .heading-lg { font-size: 1.5rem; }
+}
+
+@media (min-width: 1024px) {
+  .lg\:text-xl { font-size: 1.25rem; }
+}
+
+/* ===========================
+   12. Utility Classes
+=========================== */
+
+.text-left { text-align: left; }
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+
+.text-gradient {
+  background: var(--text-gradient-color);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .flex-center {
@@ -78,241 +613,179 @@ a {
   justify-content: center;
 }
 
-.grid {
-  display: grid;
-  gap: 1rem;
-}
+.grid { display: grid; gap: 1rem; }
 
-.grid-cols-1 {
-  grid-template-columns: repeat(1, 1fr);
-}
+.grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+.grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 
-/* Utility Classes */
-.text-gradient {
-  background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: var(--primary-color); /* Fallback */
-}
-
-.button {
-  display: inline-block;
-  padding: 0.75rem 2rem;
-  color: #fff;
-  border-radius: 9999px;
-  background-image: linear-gradient(to right, var(--primary-color), var(--secondary-color));
-  transition: transform 0.3s ease, background 0.3s ease;
-  cursor: pointer;
-  text-align: center;
-  -webkit-appearance: none; /* Remove default button styling on iOS */
-  touch-action: manipulation; /* Disable double-tap to zoom */
-}
-
-.button:hover, .button:active {
-  transform: scale(1.05);
-}
-
-.input, textarea {
-  width: 100%;
-  padding: 0.75rem;
-  margin: 0.5rem 0;
-  border: 1px solid var(--text-dark);
-  border-radius: 0.375rem;
-  background-color: var(--bg-dark);
-  color: var(--text-light);
-  -webkit-appearance: none; /* Remove default input styling on iOS */
-}
-
-.input:focus, textarea:focus {
-  border-color: var(--primary-color);
-  outline: none;
-}
-
-.checkbox {
-  width: 1.5rem;
-  height: 1.5rem;
-  accent-color: var(--primary-color);
-}
-
-/* Mobile-first Media Queries */
 @media (min-width: 768px) {
-  h1, .heading-xl {
-    font-size: 1.875rem;
-  }
-
-  h2, .heading-lg {
-    font-size: 1.5rem;
-  }
-
-  .md\:text-lg {
-    font-size: 1.125rem;
-  }
-  .md\:p-8 {
-    padding: 2rem; 
-  }
-  .md\:grid-cols-2 {
-    grid-template-columns: repeat(2, 1fr);
-  }
+  .md\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (min-width: 1024px) {
-  .lg\:text-xl {
-    font-size: 1.25rem;
-  }
-  .md\:grid-cols-3 {
-    grid-template-columns: repeat(3, 1fr);
-  }
+  .lg\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
-/* Future-proofing for Theme Switching */
-[data-theme="light"] {
-  --primary-color: #2563eb;
-  --secondary-color: #9333ea;
-  --bg-dark: var(--bg-light);
-  --text-light: var(--text-dark);
+/* ===========================
+   13. NavBar Styling
+=========================== */
+
+.guest-navbar, .admin-navbar {
+  background-color: var(--bg-card);
+  color: var(--text-light);
+  padding: 0.75rem 0;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  z-index: 50;
+  box-shadow: 0 -2px 10px var(--shadow-color);
 }
 
-[data-theme="dark"] {
-  /* Default colors are already set for dark theme */
-}
-
-/* iOS-specific optimizations */
-@supports (-webkit-touch-callout: none) {
-  .button, .input, textarea {
-    font-size: 16px; /* Prevent zoom on focus in iOS */
-  }
-}
-
-/* Improve performance */
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-}
-
-
-/* Planpaket Design */
-.packages-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 48px 16px;
-}
-
-.page-title {
-  font-size: 2.5rem;
-  font-weight: bold;
+.guest-navbar .nav-item, .admin-navbar .nav-item {
+  color: var(--text-light);
+  transition: color var(--transition-duration), background-color var(--transition-duration);
   text-align: center;
-  margin-bottom: 48px;
-  color: #ffffff;
-}
-
-.packages-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 32px;
-}
-
-.package-card {
-  background: linear-gradient(135deg, #6b46c1, #4834d4);
-  border-radius: 12px;
-  padding: 24px;
+  padding: 0.5rem;
+  border-radius: var(--border-radius);
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-}
-
-.package-title {
-  font-size: 1.5rem;
-  font-weight: bold;
-  margin-bottom: 8px;
-  color: #ffffff;
-}
-
-.package-description {
-  color: #d1d5db;
-  margin-bottom: 16px;
-}
-
-.package-price {
-  font-size: 2rem;
-  font-weight: bold;
-  margin-bottom: 24px;
-  color: #ffffff;
-}
-
-.package-features {
-  list-style-type: none;
-  padding: 0;
-  margin-bottom: 24px;
-}
-
-.package-features li {
-  display: flex;
   align-items: center;
-  margin-bottom: 10px;
-  color: #e5e7eb;
 }
 
-.feature-icon {
-  margin-right: 10px;
-  font-size: 1.2em;
+.guest-navbar .nav-item:hover {
+  color: var(--secondary-color);
 }
 
-.feature-available {
-  color: #4CAF50;  /* Grün */
+.guest-navbar .nav-item.active, .admin-navbar .nav-item.active {
+  color: var(--accent-color);
+  background-color: var(--bg-dark);
 }
 
-.feature-unavailable {
-  color: #F44336;  /* Rot */
+.admin-navbar {
+  background-color: var(--bg-dark);
 }
 
-.package-addons {
-  margin-bottom: 24px;
+.admin-navbar .active {
+  border-top: 2px solid var(--primary-color);
 }
 
-.package-addons h4 {
-  font-weight: bold;
-  margin-bottom: 8px;
-  color: #ffffff;
+@media (max-width: 640px) {
+  .guest-navbar,
+  .admin-navbar {
+    padding: 0.5rem 0;
+  }
+  .guest-navbar .text-xs,
+  .admin-navbar .text-xs {
+    font-size: 0.65rem;
+  }
 }
 
-.package-addons ul {
-  list-style-type: none;
-  padding: 0;
+/* ===========================
+   14. Error and Success Messages
+=========================== */
+
+.text-error {
+  color: var(--error-color);
 }
 
-.package-addons li {
-  color: #d1d5db;
-  margin-bottom: 8px;
+.text-success {
+  color: var(--success-color);
 }
 
-.package-button {
-  background-color: #ffffff;
-  color: #6b46c1;
-  padding: 12px 16px;
-  border-radius: 8px;
-  font-weight: bold;
-  border: none;
+/* ===========================
+   15. Progress Bar
+=========================== */
+
+.progress-primary {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 0.5rem;
+  border-radius: var(--border-radius);
+}
+
+.progress-primary::-webkit-progress-bar {
+  background-color: var(--bg-light);
+  border-radius: var(--border-radius);
+}
+
+.progress-primary::-webkit-progress-value {
+  background-color: var(--primary-color);
+  border-radius: var(--border-radius);
+}
+
+.progress-primary::-moz-progress-bar {
+  background-color: var(--primary-color);
+  border-radius: var(--border-radius);
+}
+
+/* ===========================
+   16. Range Input Styling
+=========================== */
+
+.range-input {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 10px;
+  border-radius: 5px;
+  background: var(--bg-light);
+  outline: none;
+  opacity: 0.7;
+  transition: opacity var(--transition-duration);
+}
+
+.range-input:hover {
+  opacity: 1;
+}
+
+.range-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--primary-color);
   cursor: pointer;
-  transition: background-color 0.3s ease;
 }
 
-.package-button:hover {
-  background-color: #f3e8ff;
+.range-input::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--primary-color);
+  cursor: pointer;
 }
 
-.loading-message,
-.error-message {
-  text-align: center;
-  font-size: 1.5rem;
-  padding: 48px 0;
+/* ===========================
+   17. Miscellaneous
+=========================== */
+
+.text-input-icon {
+  color: var(--input-icon-color);
 }
 
-.error-message {
-  color: #ef4444;
+.bg-dark {
+  background-color: var(--bg-dark);
+}
+
+.bg-light {
+  background-color: var(--bg-light);
+}
+
+.placeholder-secondary::placeholder {
+  color: var(--text-secondary);
+}
+
+.border-secondary {
+  border-color: var(--text-secondary);
+}
+
+.focus\:border-primary:focus {
+  border-color: var(--primary-color);
+}
+
+.focus\:ring-primary:focus {
+  --tw-ring-color: var(--primary-color);
 }

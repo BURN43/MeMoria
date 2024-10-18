@@ -148,29 +148,29 @@ const MediaModal = ({
       >
         {reversedMedia.map((item, index) => (
           <div key={item._id} className="w-screen h-screen snap-always snap-center">
-            <div className="relative w-full h-full flex items-center justify-center bg-gray-900 overflow-hidden">
+            <div className="relative w-full h-full flex items-center justify-center bg-card overflow-hidden">
               <MediaContent
                 mediaType={item.mediaType}
                 mediaUrl={item.mediaUrl}
                 title={item.title}
               />
-              <button onClick={closeModal} className="absolute top-8 left-4 p-2 text-white text-2xl z-10">
+              <button onClick={closeModal} className="absolute top-8 left-4 p-2 text-primary text-2xl z-10">
                 <FaChevronLeft />
               </button>
-              <div className="absolute bottom-20 right-4 flex flex-col items-center space-y-4 text-white">
+              <div className="absolute bottom-20 right-4 flex flex-col items-center space-y-4 text-primary">
                 <button onClick={() => setShowUsernameModal(true)} disabled={loading}>
-                  <FaRegHeart className={item.likes?.length > 0 ? 'text-red-500' : 'text-white'} size={28} />
+                  <FaRegHeart className={item.likes?.length > 0 ? 'text-accent' : 'text-primary'} size={28} />
                   <span className="block text-center mt-1">{item.likes?.length || 0}</span>
                 </button>
                 <button onClick={() => setShowCommentPanel(prev => !prev)} disabled={loading}>
-                  <FaRegComment className="text-white" size={28} />
+                  <FaRegComment className="text-primary" size={28} />
                   <span className="block text-center mt-1">{comments[item._id]?.length || 0}</span>
                 </button>
                 <button>
-                  <FiSend className="text-white" size={28} />
+                  <FiSend className="text-primary" size={28} />
                 </button>
               </div>
-              <div className="absolute bottom-0 w-full text-center text-white bg-gradient-to-t from-black to-transparent py-4">
+              <div className="absolute bottom-0 w-full text-center text-primary bg-gradient-to-t from-black to-transparent py-4">
                 {showChallengeTitle && item.challengeTitle && (
                   <p className="font-semibold mb-1">Challenge: {item.challengeTitle}</p>
                 )}
@@ -178,22 +178,19 @@ const MediaModal = ({
                   <p className="mb-2">Uploaded by: {item.uploaderUsername}</p>
                 )}
                 {item.greetingText && (
-                  <p className="italic mb-2 ">"{item.greetingText}"</p>
+                  <p className="italic mb-2">{item.greetingText}</p>
                 )}
               </div>
             </div>
           </div>
         ))}
       </div>
-
-
       {showUsernameModal && currentMedia && (
         <UsernameModal
           onSubmit={(username) => toggleLike(currentMedia._id, username)}
           onCancel={() => setShowUsernameModal(false)}
         />
       )}
-
       {currentMedia && (
         <CommentPanel
           selectedMedia={currentMedia}
@@ -207,6 +204,7 @@ const MediaModal = ({
       )}
     </div>
   );
-};
+  };
+
 
 export default React.memo(MediaModal);

@@ -183,21 +183,36 @@ router.delete('/media/:id', authMiddleware, requireRole('admin'), async (req, re
 
     console.log('Media found:', media);
 
-    const key = `${media.userId}/${media.albumId}/${media.mediaUrl.split('/').pop()}`;
-    console.log('Attempting to delete S3 object with key:', key);
+    // Delete the original media file
+    const mediaKey = `${media.userId}/${media.albumId}/${media.mediaUrl.split('/').pop()}`;
+    console.log('Attempting to delete S3 object with key:', mediaKey);
 
-    try {
-      await s3Client.send(new DeleteObjectCommand({
-        Bucket: process.env.AWS_S3_BUCKET,
-        Key: key,
-      }));
-      console.log('S3 object deleted successfully');
-    } catch (s3Error) {
-      console.error('Error deleting S3 object:', s3Error);
-      // You might want to decide how to handle S3 deletion errors
-      // For now, we'll continue with the database deletion
+    // Delete the thumbnail (if exists)
+    let thumbnailKey;
+    if (media.thumbnailUrl) {
+      thumbnailKey = `${media.userId}/${media.albumId}/thumbnails/${media.thumbnailUrl.split('/').pop()}`;
+      console.log('Attempting to delete S3 thumbnail with key:', thumbnailKey);
     }
 
+    try {
+      // Delete both media and thumbnail from S3
+      await Promise.all([
+        s3Client.send(new DeleteObjectCommand({
+          Bucket: process.env.AWS_S3_BUCKET,
+          Key: mediaKey,
+        })),
+        thumbnailKey && s3Client.send(new DeleteObjectCommand({
+          Bucket: process.env.AWS_S3_BUCKET,
+          Key: thumbnailKey,
+        })),
+      ]);
+      console.log('S3 objects deleted successfully');
+    } catch (s3Error) {
+      console.error('Error deleting S3 objects:', s3Error);
+      // Handle S3 errors but continue with database deletion
+    }
+
+    // Remove media entry from MongoDB
     await AlbumMedia.findByIdAndDelete(id);
     console.log('Media document removed from database');
 
@@ -205,12 +220,13 @@ router.delete('/media/:id', authMiddleware, requireRole('admin'), async (req, re
     const io = req.app.get('io');
     emitMediaEvent(io, 'media_deleted', { albumId: media.albumId, mediaId: id });
 
-    res.status(200).json({ message: 'Media deleted successfully' });
+    res.status(200).json({ message: 'Media and thumbnail deleted successfully' });
   } catch (error) {
     console.error('Error deleting media:', error);
     console.error('Error stack:', error.stack);
     res.status(500).json({ error: 'Error deleting media', details: error.message });
   }
 });
+
 
 export default router;

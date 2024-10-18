@@ -65,13 +65,16 @@ const MediaItem = React.memo(({ mediaItem, isAdmin, openModal, onDelete }) => {
       {showOptions && isAdmin && (
         <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center space-x-4">
           <button
-            className="p-2 bg-blue-500 text-white rounded-full"
-            onClick={() => openModal(mediaItem)}
+            className="p-2 bg-primary text-white rounded-full"
+            onClick={(e) => {
+              e.stopPropagation();
+              openModal(mediaItem);
+            }}
           >
             <FaEye size={24} />
           </button>
           <button
-            className="p-2 bg-red-500 text-white rounded-full"
+            className="p-2 bg-accent text-white rounded-full"
             onClick={handleDelete}
           >
             <FaTrashAlt size={24} />
@@ -158,11 +161,11 @@ const MediaGrid = ({
     setItemsToShow((prev) => prev + 6);
   }, []);
 
-  return (
+ return (
     <div className="flex flex-col w-full mt-2 h-fit xl:p-2">
       <div className="grid grid-cols-3 gap-1 sm:gap-1.5 md:grid-cols-6 lg:grid-cols-8 h-fit">
         {canUpload && (
-          <label className="relative flex flex-col items-center justify-center w-full cursor-pointer aspect-square bg-purple-200 rounded-lg border-2 border-dashed border-purple-600 p-4">
+          <label className="relative flex flex-col items-center justify-center w-full cursor-pointer aspect-square bg-card rounded-lg border-2 border-dashed border-accent p-4">
             <input
               type="file"
               accept="image/*,video/*"
@@ -171,25 +174,20 @@ const MediaGrid = ({
               style={{ display: 'none' }}
             />
             {loading ? (
-              <div className="circle-progress">
-                <div style={{ animation: 'spin 1s linear infinite' }} />
-              </div>
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-accent"></div>
             ) : (
-              <FaPlus className="text-purple-600 text-4xl" />
+              <FaPlus className="text-accent text-4xl" />
             )}
-            <div className="mt-1 text-xs text-purple-500">Bilder hinzufügen</div>
+            <div className="mt-1 text-xs text-accent">Add Images</div>
           </label>
         )}
-
         {memoizedMediaItems}
-
         {infiniteScroll && <div id="sentinel" style={{ height: '10px' }} />}
       </div>
-
       {!infiniteScroll && sortedMedia.length > itemsToShow && (
         <button
           onClick={loadMoreItems}
-          className="col-span-full p-2 bg-purple-600 text-white mt-4 rounded"
+          className="button button-accent mt-4 w-full"
         >
           Load More
         </button>

@@ -5,11 +5,9 @@ import { useAuthStore } from '../store/authStore';
 import Layout from '../components/Layout';
 import io from 'socket.io-client';
 
-
-// Option 1: Direct backend URL in development
 const API_URL = import.meta.env.MODE === 'development'
-? import.meta.env.VITE_API_BASE_URL_DEV // Development URL
-: import.meta.env.VITE_API_BASE_URL_PROD; // Production URL
+  ? import.meta.env.VITE_API_BASE_URL_DEV
+  : import.meta.env.VITE_API_BASE_URL_PROD;
 
 const CHALLENGES_ENDPOINT = `${API_URL}/challenges`;
 
@@ -21,7 +19,6 @@ const PhotoChallengePage = () => {
   const [newTitle, setNewTitle] = useState('');
   const [socket, setSocket] = useState(null);
 
-  // Initialize WebSocket connection
   useEffect(() => {
     if (isAdmin && albumId) {
       const newSocket = io(API_URL);
@@ -89,42 +86,35 @@ const PhotoChallengePage = () => {
   }, [albumId]);
 
   const deleteChallenge = useCallback(async (id) => {
-    // Optimistic update
     setChallenges(prevChallenges => prevChallenges.filter(challenge => challenge._id !== id));
 
     try {
       await axios.delete(`${CHALLENGES_ENDPOINT}/${id}`);
-      // The actual update will be handled by the WebSocket event
     } catch (err) {
       console.error('Error deleting challenge:', err);
-      // Revert the optimistic update
       fetchChallenges();
     }
   }, [fetchChallenges]);
 
   const addNewChallenge = useCallback(async () => {
     if (newTitle && albumId) {
-      // Optimistic update
       const tempId = Date.now().toString();
       const tempChallenge = { _id: tempId, title: newTitle, albumId };
       setChallenges(prevChallenges => [...prevChallenges, tempChallenge]);
 
       try {
         const res = await axios.post(CHALLENGES_ENDPOINT, { title: newTitle, albumId });
-        // The actual update will be handled by the WebSocket event
         setNewTitle('');
       } catch (err) {
         console.error('Error adding challenge:', err);
-        // Revert the optimistic update
         setChallenges(prevChallenges => prevChallenges.filter(challenge => challenge._id !== tempId));
       }
     }
   }, [newTitle, albumId]);
 
   if (!isAdmin) {
-    return <div>Access Denied: Admins only</div>;
+    return <div className="text-center text-error">Access Denied: Admins only</div>;
   }
-
   return (
     <Layout>
       <motion.div
@@ -134,35 +124,36 @@ const PhotoChallengePage = () => {
         className="p-4 md:p-8 pb-20"
       >
         <div className="text-center max-w-2xl mx-auto mb-8 mt-10">
-          <h1 className="heading-xl text-gradient">
+          <h1 className="text-4xl font-bold mb-4 text-gradient">
             Photo Challenges
           </h1>
-          <p className="text-base text-gray-300">
+          <p className="text-lg text-secondary">
             Create and manage photo challenges for your event guests.
           </p>
         </div>
-
         {/* Add New Challenge */}
         <div className="bg-card rounded-xl p-8 shadow-lg max-w-3xl mx-auto mb-8">
-          <h2 className="heading-lg text-gray-200">Add New Challenge</h2>
+          <h2 className="text-2xl font-semibold mb-4 text-primary">Add New Challenge</h2>
           <div className="mb-4">
             <input
               type="text"
               placeholder="Enter challenge title"
-              className="input"
+              className="input w-full"
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
             />
           </div>
           <div className="text-center">
-            <button onClick={addNewChallenge} className="button">
+            <button
+              onClick={addNewChallenge}
+              className="button button-primary"
+            >
               Add Challenge
             </button>
           </div>
         </div>
-
         {/* Challenges List */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {challenges.map((challenge) => (
             <ChallengeCard
               key={challenge._id}
@@ -174,28 +165,26 @@ const PhotoChallengePage = () => {
       </motion.div>
     </Layout>
   );
-};
-
-const ChallengeCard = React.memo(({ challenge, deleteChallenge }) => (
+  };
+  const ChallengeCard = React.memo(({ challenge, deleteChallenge }) => (
   <motion.div
-    className="bg-card rounded-xl p-6 shadow-lg relative"
+    className="bg-card rounded-xl p-6 shadow-lg"
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.5 }}
   >
     <div className="mb-4">
-      <h3 className="text-xl font-bold text-white">{challenge.title}</h3>
+      <h3 className="text-xl font-semibold text-primary">{challenge.title}</h3>
     </div>
-
     <div className="flex justify-end mt-4">
       <button
         onClick={() => deleteChallenge(challenge._id)}
-        className="bg-red-500 text-white px-4 py-2 rounded shadow hover:bg-red-600 transition"
+        className="button button-error"
       >
         Delete
       </button>
     </div>
   </motion.div>
-));
+  ));
 
 export default React.memo(PhotoChallengePage);
