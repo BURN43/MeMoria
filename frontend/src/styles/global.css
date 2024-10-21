@@ -1,3 +1,8 @@
+
+
+
+
+
 /* ===========================
    1. Base Theme Variables
 =========================== */
@@ -11,7 +16,7 @@
   --bg-light: #ffffff;
   --text-light: #303030;
   --text-dark: #000000;
-  --bg-card: rgb(237, 237, 237, 0.8);
+  --bg-card: rgba(237, 237, 237, 0.8);
   --countdown-bg-color: #f0f0f0;
   --countdown-text-color: #303030;
   --text-primary: #6f6767;
@@ -49,7 +54,7 @@
   --bg-light: #ffffff;
   --text-light: #5a5351;
   --text-dark: #000000;
-  --bg-card: rgb(237, 234, 233, 0.8);
+  --bg-card: rgba(237, 234, 233, 0.8);
   --countdown-bg-color: #dfdad7;
   --countdown-text-color: #5a5351;
   --text-primary: #5a5351;
@@ -75,16 +80,16 @@
 
 /* Verlobung Theme */
 [data-theme="verlobung"] {
-  --primary-color: #b9a1d1; /* Soft Lavender */
-  --secondary-color: #af66ea; /* Lighter Lavender */
-  --accent-color: #d8d2e0; /* Muted Lavender Gray */
+  --primary-color: #b9a1d1;
+  --secondary-color: #af66ea;
+  --accent-color: #d8d2e0;
   --button-color: #b9a1d1;
-  --bg-dark: #cbb7df; /* Lavender Tint */
-  --bg-light: #ffffff; /* White */
-  --text-light: #5b5362; /* Dark Lavender Gray */
-  --text-dark: #000000; /* Black */
-  --bg-card: rgba(230, 222, 240, 0.9); /* Soft Lavender for Cards */
-  --countdown-bg-color: #e6d6f2; 
+  --bg-dark: #cbb7df;
+  --bg-light: #ffffff;
+  --text-light: #5b5362;
+  --text-dark: #000000;
+  --bg-card: rgba(230, 222, 240, 0.9);
+  --countdown-bg-color: #e6d6f2;
   --countdown-text-color: #5b5362;
   --text-primary: #a46cd5;
   --text-secondary: #1f1f1f;
@@ -95,29 +100,29 @@
   --error-color: #ff0000;
   --success-color: #28a745;
   --warning-color: #ffc107;
-  --info-color: #6b8e23; /* Olive for Information Highlights */
-  --border-color: #d0c4df; /* Soft Grayish Lavender */
+  --info-color: #6b8e23;
+  --border-color: #d0c4df;
   --shadow-color: rgba(0, 0, 0, 0.1);
   --hover-opacity: 0.85;
   --transition-duration: 0.3s;
   --border-radius: 0.375rem;
-  --input-bg: #f8f9fa; /* Light Gray Background */
+  --input-bg: #f8f9fa;
   --input-border: #d0c4df;
   --input-focus-border: #b9a1d1;
   --input-focus-shadow: rgba(185, 161, 209, 0.25);
 }
 
-/* Henna-Abend Theme - Warm Spice */
+/* Henna-Abend Theme */
 [data-theme="henna"] {
-  --primary-color: #d6b4e8; /* Soft Lavender */
-  --secondary-color: #e6cfee; /* Light Lavender */
-  --accent-color: #f3e7f7; /* Pastel Purple */
+  --primary-color: #d6b4e8;
+  --secondary-color: #e6cfee;
+  --accent-color: #f3e7f7;
   --button-color: #d6b4e8;
-  --bg-dark: #f0e3f3; /* Light Lavender Gray */
-  --bg-light: #ffffff; /* White */
-  --text-light: #4a3d54; /* Deep Lavender Gray */
+  --bg-dark: #f0e3f3;
+  --bg-light: #ffffff;
+  --text-light: #4a3d54;
   --text-dark: #000000;
-  --bg-card: rgba(236, 223, 245, 0.9); /* Light Lavender Card Background */
+  --bg-card: rgba(236, 223, 245, 0.9);
   --countdown-bg-color: #e6cfee;
   --countdown-text-color: #4a3d54;
   --text-primary: #a46cd5;
@@ -126,32 +131,32 @@
   --text-button: #ffffff;
   --text-gradient-color: #d4b0e8;
   --input-icon-color: #000000;
-  --error-color: #e57373; /* Light Red */
+  --error-color: #e57373;
   --success-color: #28a745;
   --warning-color: #ffc107;
-  --info-color: #8a2be2; /* Blue Violet */
-  --border-color: #c6a4d8; /* Light Purple */
+  --info-color: #8a2be2;
+  --border-color: #c6a4d8;
   --shadow-color: rgba(0, 0, 0, 0.1);
   --hover-opacity: 0.85;
   --transition-duration: 0.3s;
   --border-radius: 0.5rem;
-  --input-bg: #f7f0f9; /* Light Purple Tint */
+  --input-bg: #f7f0f9;
   --input-border: #c6a4d8;
   --input-focus-border: #d6b4e8;
   --input-focus-shadow: rgba(214, 180, 232, 0.25);
 }
 
-/* Geburtstag Theme - Festive Pop */
+/* Kunst Theme */
 [data-theme="kunst"] {
-  --primary-color: #2e3a59; /* Midnight Navy */
-  --secondary-color: #d4af37; /* Gold */
-  --accent-color: #f0e6d6; /* Soft Beige */
+  --primary-color: #2e3a59;
+  --secondary-color: #d4af37;
+  --accent-color: #f0e6d6;
   --button-color: #2e3a59;
-  --bg-dark: #394665; /* Slightly Lighter Navy */
-  --bg-light: #ffffff; /* White */
-  --text-light: #e8c77b; /* Gold Accent */
-  --text-dark: #000000; /* White */
-  --bg-card: rgba(62, 74, 109, 0.9); /* Light Navy Card Background */
+  --bg-dark: #394665;
+  --bg-light: #ffffff;
+  --text-light: #e8c77b;
+  --text-dark: #000000;
+  --bg-card: rgba(62, 74, 109, 0.9);
   --countdown-bg-color: #f0e6d6;
   --countdown-text-color: #2e3a59;
   --text-primary: #e8c77b;
@@ -160,35 +165,32 @@
   --text-button: #ffffff;
   --text-gradient-color: #e8c77b;
   --input-icon-color: #ffffff;
-  --error-color: #e57373; /* Light Red */
+  --error-color: #e57373;
   --success-color: #28a745;
   --warning-color: #ffc107;
-  --info-color: #6c757d; /* Cool Gray */
-  --border-color: #d4af37; /* Gold Border */
+  --info-color: #6c757d;
+  --border-color: #d4af37;
   --shadow-color: rgba(0, 0, 0, 0.2);
   --hover-opacity: 0.85;
   --transition-duration: 0.3s;
   --border-radius: 0.375rem;
-  --input-bg: #e6e6e6; /* Light Beige */
+  --input-bg: #e6e6e6;
   --input-border: #e8c77b;
   --input-focus-border: #d4af37;
   --input-focus-shadow: rgba(212, 175, 55, 0.25);
 }
 
-
-
-
-/* Geburtstag Theme - Festive Pop */
+/* Geburtstag Theme */
 [data-theme="geburtstag"] {
-  --primary-color: #00bcd4; /* Bold Cyan */
-  --secondary-color: #f4d35e; /* Muted Yellow */
-  --accent-color: #f7e8c8; /* Soft Cream Yellow */
+  --primary-color: #00bcd4;
+  --secondary-color: #f4d35e;
+  --accent-color: #f7e8c8;
   --button-color: #00bcd4;
-  --bg-dark: #eaf7f9; /* Very Light Cyan */
-  --bg-light: #ffffff; /* White */
-  --text-light: #004f5d; /* Dark Cyan */
-  --text-dark: #000000; /* Black */
-  --bg-card: rgba(224, 248, 250, 0.9); /* Light Cyan for Cards */
+  --bg-dark: #eaf7f9;
+  --bg-light: #ffffff;
+  --text-light: #004f5d;
+  --text-dark: #000000;
+  --bg-card: rgba(224, 248, 250, 0.9);
   --countdown-bg-color: #f4d35e;
   --countdown-text-color: #004f5d;
   --text-primary: #004f5d;
@@ -197,16 +199,16 @@
   --text-button: #ffffff;
   --text-gradient-color: #00bcd4;
   --input-icon-color: #000000;
-  --error-color: #ff6b6b; /* Red Coral */
+  --error-color: #ff6b6b;
   --success-color: #28a745;
   --warning-color: #ffc107;
-  --info-color: #00bcd4; /* Bold Cyan */
-  --border-color: #0097a7; /* Darker Cyan Border */
+  --info-color: #00bcd4;
+  --border-color: #0097a7;
   --shadow-color: rgba(0, 0, 0, 0.1);
   --hover-opacity: 0.8;
   --transition-duration: 0.3s;
   --border-radius: 0.375rem;
-  --input-bg: #e0f7fa; /* Very Light Cyan */
+  --input-bg: #e0f7fa;
   --input-border: #0097a7;
   --input-focus-border: #00bcd4;
   --input-focus-shadow: rgba(0, 188, 212, 0.25);
@@ -214,16 +216,16 @@
 
 /* Babyshower Theme */
 [data-theme="babyshower"] {
-  --primary-color: #eae2d6; /* Pearl */
-  --secondary-color: #e0b873; /* Soft Gold */
-  --accent-color: #fefbf6; /* Very Light Cream */
+  --primary-color: #eae2d6;
+  --secondary-color: #e0b873;
+  --accent-color: #fefbf6;
   --button-color: #e0b873;
-  --bg-dark: #f7f5f0; /* Light Pearl */
-  --bg-light: #ffffff; /* White */
-  --text-light: #5e5a50; /* Warm Gray */
-  --text-dark: #000000; /* Black */
-  --bg-card: rgba(234, 226, 214, 0.9); /* Pearl Card Background */
-  --countdown-bg-color: #e6d7b0; /* Soft Golden Beige */
+  --bg-dark: #f7f5f0;
+  --bg-light: #ffffff;
+  --text-light: #5e5a50;
+  --text-dark: #000000;
+  --bg-card: rgba(234, 226, 214, 0.9);
+  --countdown-bg-color: #e6d7b0;
   --countdown-text-color: #5e5a50;
   --text-primary: #5e5a50;
   --text-secondary: #1f1f1f;
@@ -231,16 +233,16 @@
   --text-button: #ffffff;
   --text-gradient-color: #5e5a50;
   --input-icon-color: #000000;
-  --error-color: #e57373; /* Light Red */
+  --error-color: #e57373;
   --success-color: #28a745;
   --warning-color: #ffc107;
-  --info-color: #c2a873; /* Warm Gold */
-  --border-color: #cbb08b; /* Golden Pearl Border */
+  --info-color: #c2a873;
+  --border-color: #cbb08b;
   --shadow-color: rgba(0, 0, 0, 0.1);
   --hover-opacity: 0.85;
   --transition-duration: 0.3s;
   --border-radius: 0.375rem;
-  --input-bg: #faf8f4; /* Very Light Cream */
+  --input-bg: #faf8f4;
   --input-border: #cbb08b;
   --input-focus-border: #e0b873;
   --input-focus-shadow: rgba(224, 184, 115, 0.25);
@@ -281,18 +283,17 @@
 }
 
 /* Taufe Theme */
-
 [data-theme="taufe"] {
-  --primary-color: #ffb6c1; /* Soft Baby Pink */
-  --secondary-color: #f17eb0; /* Light Pink Blush */
-  --accent-color: #ffffff; /* Crisp White */
+  --primary-color: #ffb6c1;
+  --secondary-color: #f17eb0;
+  --accent-color: #ffffff;
   --button-color: #e298a3;
-  --bg-dark: #f7d4da; /* Light Rosy Pink */
-  --bg-light: #ffffff; /* White */
-  --text-light: #91696b; /* Soft Grayish Pink */
-  --text-dark: #000000; /* Black */
-  --bg-card: rgb(251, 193, 201, 0.9); /* Soft Pink Card Background */
-  --countdown-bg-color: #ffe0e5; /* Very Light Pink */
+  --bg-dark: #f7d4da;
+  --bg-light: #ffffff;
+  --text-light: #91696b;
+  --text-dark: #000000;
+  --bg-card: rgba(251, 193, 201, 0.9);
+  --countdown-bg-color: #ffe0e5;
   --countdown-text-color: #4d3a3b;
   --text-primary: #4d3a3b;
   --text-secondary: #1f1f1f;
@@ -300,23 +301,20 @@
   --text-button: #ffffff;
   --text-gradient-color: #f17eb0;
   --input-icon-color: #000000;
-  --error-color: #e57373; /* Light Red */
+  --error-color: #e57373;
   --success-color: #28a745;
   --warning-color: #ffc107;
-  --info-color: #ff999f; /* Soft Pink */
-  --border-color: #ffc0cb; /* Light Pink Border */
+  --info-color: #ff999f;
+  --border-color: #ffc0cb;
   --shadow-color: rgba(0, 0, 0, 0.1);
   --hover-opacity: 0.9;
   --transition-duration: 0.3s;
   --border-radius: 0.375rem;
-  --input-bg: #fff4f5; /* Very Light Pink */
+  --input-bg: #fff4f5;
   --input-border: #ffc0cb;
   --input-focus-border: #ffb6c1;
   --input-focus-shadow: rgba(255, 182, 193, 0.25);
 }
-
-
-
 
 /* ===========================
    3. Theme Switcher Styling
@@ -365,17 +363,19 @@
    4. Global Reset and Base Styles
 =========================== */
 
-html {
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
   box-sizing: border-box;
   -webkit-text-size-adjust: 100%;
 }
 
-*, *:before, *:after {
+*, *::before, *::after {
   box-sizing: inherit;
 }
 
 body {
-  margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
   background-color: var(--bg-dark);
   color: var(--text-light);
@@ -384,33 +384,36 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+#root {
+  height: 100%;
+}
+
 /* ===========================
    5. Typography
 =========================== */
 
 h1, .heading-xl {
-  font-size: 2.5rem; /* Larger for wedding theme emphasis */
+  font-size: 2.5rem;
   font-weight: bold;
   line-height: 1.2;
-  font-family: 'Cinzel Decorative', serif; /* Elegant font for headings */
-  letter-spacing: 0.05rem; /* Elegant letter spacing */
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1); /* Soft text shadow for depth */
+  font-family: 'Cinzel Decorative', serif;
+  letter-spacing: 0.05rem;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 h2, .heading-lg {
-  font-size: 1.75rem; /* Slightly larger for distinction */
+  font-size: 1.75rem;
   font-weight: bold;
   line-height: 1.3;
-  font-family: 'Playfair Display', serif; /* Sophisticated serif for subheadings */
+  font-family: 'Playfair Display', serif;
 }
 
 p, .text-base {
   font-size: 1rem;
   color: var(--text-light);
-  line-height: 1.7; /* Comfortable line spacing for readability */
-  font-family: 'Playfair Display', serif; /* Elegant serif for body text */
+  line-height: 1.7;
+  font-family: 'Playfair Display', serif;
 }
-
 
 /* General Text Color Class */
 .text-primary { color: var(--text-primary); }
@@ -585,22 +588,21 @@ a {
 
 @media (max-width: 767px) {
   html {
-    font-size: 14px; /* Slightly smaller base font size for mobile */
+    font-size: 14px;
+    height: 100%;
   }
   h1, .heading-xl { font-size: 1.75rem; }
   h2, .heading-lg { font-size: 1.5rem; }
 
   .button {
-    padding: 0.5rem 1.5rem; /* Smaller padding for mobile buttons */
+    padding: 0.5rem 1.5rem;
   }
   .input, textarea {
-    font-size: 16px; /* Prevent zoom on focus in iOS */
+    font-size: 16px;
   }
-  /* Improve touch targets for mobile */
   .nav-item, .button, .input, textarea {
-    min-height: 44px; /* Minimum touch target size */
+    min-height: 44px;
   }
-  /* Adjust grid for mobile */
   .grid { gap: 0.75rem; }
   .grid-cols-2, .grid-cols-3 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
 }
@@ -704,9 +706,6 @@ a {
   }
 }
 
-
-
-
 /* ===========================
    14. Error and Success Messages
 =========================== */
@@ -717,65 +716,7 @@ a {
 
 .text-success {
   color: var(--success-color);
-
-
 }
-
-
-/* ===========================
-   18. Mobile-specific Optimizations
-=========================== */
-/* Prevent text size adjustment on orientation change */
-html {
-  -webkit-text-size-adjust: 100%;
-}
-/* Improve scrolling on iOS */
-body {
-  -webkit-overflow-scrolling: touch;
-}
-/* Disable hover effects on mobile */
-@media (hover: none) {
-  .button:hover, .nav-item:hover {
-    transform: none;
-  }
-}
-/* Optimize inputs for mobile */
-input[type="text"],
-input[type="email"],
-input[type="password"],
-textarea {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-}
-/* Improve mobile form usability */
-select {
-  font-size: 16px; /* Prevent zoom on focus in iOS */
-}
-/* Optimize range input for mobile */
-.range-input::-webkit-slider-thumb {
-  width: 28px;
-  height: 28px;
-}
-.range-input::-moz-range-thumb {
-  width: 28px;
-  height: 28px;
-}
-/* Improve tap targets for checkboxes and radio buttons */
-input[type="checkbox"],
-input[type="radio"] {
-  width: 22px;
-  height: 22px;
-}
-/* Add momentum scrolling for iOS */
-.scroll-container {
-  -webkit-overflow-scrolling: touch;
-}
-/* Disable pull-to-refresh on mobile browsers */
-body {
-  overscroll-behavior-y: contain;
-}
-
 
 /* ===========================
    15. Progress Bar
@@ -871,4 +812,102 @@ body {
 
 .focus\:ring-primary:focus {
   --tw-ring-color: var(--primary-color);
+}
+
+/* ===========================
+   18. Mobile-specific Optimizations
+=========================== */
+
+html {
+  -webkit-text-size-adjust: 100%;
+  height: 100%;
+}
+
+body {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  min-height: 100%;
+}
+
+#root {
+  height: 100%;
+}
+
+@media (hover: none) {
+  .button:hover, .nav-item:hover {
+    transform: none;
+  }
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+textarea {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+select {
+  font-size: 16px;
+}
+
+.range-input::-webkit-slider-thumb {
+  width: 28px;
+  height: 28px;
+}
+
+.range-input::-moz-range-thumb {
+  width: 28px;
+  height: 28px;
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+  width: 22px;
+  height: 22px;
+}
+
+.scroll-container {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ===========================
+   19. MediaModal Specific Styles
+=========================== */
+
+.media-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background-color: black;
+  overflow: hidden;
+}
+
+#media-scroll-container {
+  min-height: 100%;
+  height: 100%;
+  overflow-y: scroll;
+  -webkit-overflow-scrolling: touch;
+}
+
+
+/* ===========================
+   20. Safe Area Insets for Mobile Devices
+=========================== */
+
+.safe-top {
+  top: env(safe-area-inset-top, 1rem);
+}
+
+.safe-left {
+  left: env(safe-area-inset-left, 1rem);
+}
+
+.safe-right {
+  right: env(safe-area-inset-right, 1rem);
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 1rem);
 }

@@ -15,6 +15,8 @@ export const getSettings = async (req, res) => {
   }
 };
 
+
+
 export const updateSettings = async (req, res) => {
   try {
     const userId = req.user._id;

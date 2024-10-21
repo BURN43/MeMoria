@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 
+
 const API_URL = import.meta.env.MODE === 'development'
   ? import.meta.env.VITE_API_URL_BASE_WITH_API_DEV
   : import.meta.env.VITE_API_URL_BASE_WITH_API_PROD;

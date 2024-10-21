@@ -4,55 +4,53 @@ import { FiSend } from 'react-icons/fi';
 import axios from 'axios';
 import CommentPanel from './CommentPanel';
 
-// Dynamic API URL
-const API_URL = import.meta.env.MODE === 'production'
-  ? import.meta.env.VITE_API_BASE_URL_PROD
-  : import.meta.env.VITE_API_BASE_URL_DEV;
-
-const UsernameModal = React.memo(({ onSubmit, onCancel }) => {
+const UsernameModal = ({ onSubmit, onCancel }) => {
   const [username, setUsername] = useState('');
 
   return (
-    <div className="absolute bg-white p-4 rounded shadow-lg z-50">
-      <h2 className="text-lg font-bold mb-2">Please Enter Your Username</h2>
-      <input
-        type="text"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-        className="border p-2 rounded w-full mb-2"
-      />
-      <button onClick={() => onSubmit(username)} className="bg-blue-500 text-white p-2 rounded mr-2">Submit</button>
-      <button onClick={onCancel} className="bg-red-500 text-white p-2 rounded">Cancel</button>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white p-4 rounded-lg">
+        <input
+          type="text"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          placeholder="Enter your username"
+          className="border p-2 mb-2 w-full"
+        />
+        <div className="flex justify-end space-x-2">
+          <button onClick={onCancel} className="px-4 py-2 bg-gray-200 rounded">
+            Cancel
+          </button>
+          <button
+            onClick={() => onSubmit(username)}
+            className="px-4 py-2 bg-blue-500 text-white rounded"
+          >
+            Submit
+          </button>
+        </div>
+      </div>
     </div>
   );
-});
+};
 
 const MediaContent = React.memo(({ mediaType, mediaUrl, title }) => {
-  const [isPortrait, setIsPortrait] = useState(true);
-
-  useEffect(() => {
-    if (mediaType === 'image') {
-      const img = new Image();
-      img.onload = () => {
-        setIsPortrait(img.height > img.width);
-      };
-      img.src = mediaUrl;
-    }
-  }, [mediaType, mediaUrl]);
-
   return mediaType === 'video' ? (
-    <video className="w-full h-full object-contain" controls autoPlay>
+    <video
+      className="max-w-full max-h-full object-contain"
+      controls
+      autoPlay
+      playsInline
+      muted
+    >
       <source src={mediaUrl} type="video/mp4" />
-      Your browser does not support the video tag.
+      Ihr Browser unterstützt das Video-Tag nicht.
     </video>
   ) : (
-    <div className="w-full h-full flex items-center justify-center">
-      <img
-        src={mediaUrl}
-        alt={title || 'Media'}
-        className={`max-w-full max-h-full ${isPortrait ? 'h-full' : 'w-full'} object-contain`}
-      />
-    </div>
+    <img
+      src={mediaUrl}
+      alt={title || 'Medieninhalt'}
+      className="max-w-full max-h-full object-contain"
+    />
   );
 });
 
@@ -64,7 +62,7 @@ const MediaModal = ({
   setComments,
   guestSession,
   showChallengeTitle,
-  showUploaderUsername
+  showUploaderUsername,
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showCommentPanel, setShowCommentPanel] = useState(false);
@@ -75,12 +73,15 @@ const MediaModal = ({
 
   useEffect(() => {
     if (selectedMedia && reversedMedia.length > 0) {
-      const initialIndex = reversedMedia.findIndex((item) => item._id === selectedMedia._id);
+      const initialIndex = reversedMedia.findIndex(
+        (item) => item._id === selectedMedia._id
+      );
       setCurrentIndex(initialIndex >= 0 ? initialIndex : 0);
 
       const scrollContainer = document.getElementById('media-scroll-container');
       if (scrollContainer) {
-        scrollContainer.scrollTop = initialIndex * window.innerHeight;
+        scrollContainer.scrollTop =
+          initialIndex * scrollContainer.clientHeight;
       }
     }
     document.body.style.overflow = 'hidden';
@@ -89,103 +90,171 @@ const MediaModal = ({
     };
   }, [selectedMedia, reversedMedia]);
 
-  const toggleLike = useCallback(async (mediaId, username) => {
-    if (!username.trim()) {
-      alert('Username cannot be empty.');
-      return;
-    }
+  const toggleLike = useCallback(
+    async (mediaId, username) => {
+      if (!username.trim()) {
+        alert('Der Benutzername darf nicht leer sein.');
+        return;
+      }
+      setLoading(true);
+      try {
+        const response = await axios.post(`/api/media/${mediaId}/like`, {
+          username,
+        });
+        const updatedMedia = response.data;
+        setCurrentIndex((prevIndex) => {
+          const newMedia = [...reversedMedia];
+          newMedia[prevIndex] = updatedMedia;
+          return prevIndex;
+        });
+      } catch (error) {
+        console.error('Error toggling like:', error);
+      } finally {
+        setLoading(false);
+        setShowUsernameModal(false);
+      }
+    },
+    [reversedMedia]
+  );
 
-    setLoading(true);
-    try {
-      const response = await axios.post(`${API_URL}/api/like/${mediaId}`, { guestSession: username });
-      const updatedMedia = reversedMedia.map(item => 
-        item._id === mediaId ? { ...item, likes: response.data.likes } : item
-      );
-      // You need to have a function to update the media array in the parent component
-      // updateMedia(updatedMedia.reverse());
-      setShowUsernameModal(false);
-    } catch (error) {
-      console.error('Error toggling like:', error);
-      alert('Failed to toggle like, please try again.');
-    }
-    setLoading(false);
-  }, [reversedMedia]);
+  const handleScroll = useCallback(
+    (e) => {
+      const containerHeight = e.target.clientHeight;
+      const index = Math.round(e.target.scrollTop / containerHeight);
+      if (
+        index !== currentIndex &&
+        index >= 0 &&
+        index < reversedMedia.length
+      ) {
+        setCurrentIndex(index);
+      }
+    },
+    [currentIndex, reversedMedia.length]
+  );
 
-  const handleCommentSubmit = useCallback(async (mediaId, comment, setNewComment) => {
-    setLoading(true);
-    try {
-      const response = await axios.post(`${API_URL}/api/comments/${mediaId}`, { comment, guestSession });
-      setComments((prev) => ({
-        ...prev,
-        [mediaId]: [...(prev[mediaId] || []), response.data.comment],
-      }));
-      setNewComment('');
-    } catch (error) {
-      console.error('Error submitting comment:', error);
-      alert('Failed to submit comment, please try again.');
-    }
-    setLoading(false);
-  }, [guestSession, setComments]);
+  const currentMedia = useMemo(
+    () => reversedMedia[currentIndex],
+    [reversedMedia, currentIndex]
+  );
 
-  const handleScroll = useCallback((e) => {
-    const index = Math.round(e.target.scrollTop / window.innerHeight);
-    if (index !== currentIndex && index >= 0 && index < reversedMedia.length) {
-      setCurrentIndex(index);
-    }
-  }, [currentIndex, reversedMedia.length]);
+  const commentCount = useMemo(
+    () => (currentMedia ? comments[currentMedia._id]?.length || 0 : 0),
+    [comments, currentMedia]
+  );
 
-  const currentMedia = useMemo(() => reversedMedia[currentIndex], [reversedMedia, currentIndex]);
-  const commentCount = useMemo(() => currentMedia ? comments[currentMedia._id]?.length || 0 : 0, [comments, currentMedia]);
+  const handleCommentSubmit = useCallback(
+    async (comment) => {
+      if (!currentMedia) return;
+
+      try {
+        const response = await axios.post(
+          `/api/media/${currentMedia._id}/comment`,
+          comment
+        );
+        const newComment = response.data;
+        setComments((prevComments) => ({
+          ...prevComments,
+          [currentMedia._id]: [
+            ...(prevComments[currentMedia._id] || []),
+            newComment,
+          ],
+        }));
+      } catch (error) {
+        console.error('Error submitting comment:', error);
+      }
+    },
+    [currentMedia, setComments]
+  );
 
   if (!reversedMedia || reversedMedia.length === 0) return null;
 
   return (
     <div className="fixed inset-0 z-[200] bg-black">
-      <div 
+      <div
         id="media-scroll-container"
-        className="w-full h-full overflow-y-scroll snap-y snap-mandatory"
+        className="w-screen h-screen overflow-y-scroll snap-y snap-mandatory"
         onScroll={handleScroll}
+        style={{ 
+          height: '100%', 
+          paddingTop: 'env(safe-area-inset-top)',
+          paddingBottom: 'env(safe-area-inset-bottom)'
+        }}
       >
         {reversedMedia.map((item, index) => (
-          <div key={item._id} className="w-screen h-screen snap-always snap-center">
-            <div className="relative w-full h-full flex items-center justify-center bg-gray-900 overflow-hidden">
+          <div
+            key={item._id}
+            className="w-screen h-screen snap-always snap-center flex items-center justify-center"
+          >
+            <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
               <MediaContent
                 mediaType={item.mediaType}
                 mediaUrl={item.mediaUrl}
                 title={item.title}
               />
-              <button onClick={closeModal} className="absolute top-8 left-4 p-2 text-white text-2xl z-10">
-                <FaChevronLeft />
-              </button>
-              <div className="absolute bottom-20 right-4 flex flex-col items-center space-y-4 text-white">
-                <button onClick={() => setShowUsernameModal(true)} disabled={loading}>
-                  <FaRegHeart className={item.likes?.length > 0 ? 'text-red-500' : 'text-white'} size={28} />
-                  <span className="block text-center mt-1">{item.likes?.length || 0}</span>
+              {/* Like- and Comment Icons */}
+              <div className="absolute bottom-20 right-4 sm:right-10 flex flex-col items-center space-y-4 text-white  py-20">
+                <button
+                  onClick={() => setShowUsernameModal(true)}
+                  disabled={loading}
+                  className="p-2"
+                >
+                  <FaRegHeart
+                    className={
+                      item.likes?.length > 0 ? 'text-red-500' : 'text-white'
+                    }
+                    size={24}
+                  />
+                  <span className="block text-center mt-1 text-sm">
+                    {item.likes?.length || 0}
+                  </span>
                 </button>
-                <button onClick={() => setShowCommentPanel(prev => !prev)} disabled={loading}>
-                  <FaRegComment className="text-white" size={28} />
-                  <span className="block text-center mt-1">{comments[item._id]?.length || 0}</span>
+                <button
+                  onClick={() => setShowCommentPanel((prev) => !prev)}
+                  disabled={loading}
+                  className="p-2"
+                >
+                  <FaRegComment className="text-white" size={24} />
+                  <span className="block text-center mt-1 text-sm">
+                    {comments[item._id]?.length || 0}
+                  </span>
                 </button>
-                <button>
-                  <FiSend className="text-white" size={28} />
+                <button className="p-2">
+                  <FiSend className="text-white" size={24} />
                 </button>
               </div>
-              <div className="absolute bottom-0 w-full text-center text-white bg-gradient-to-t from-black to-transparent py-4">
+              {/* Bottom Text */}
+              <div className="absolute bottom-0 left-0 right-0 text-center text-white bg-gradient-to-t from-black to-transparent py-20 px-20">
                 {showChallengeTitle && item.challengeTitle && (
-                  <p className="font-semibold mb-1">Challenge: {item.challengeTitle}</p>
+                  <p className="font-semibold mb-1 text-sm sm:text-base">
+                    Challenge: {item.challengeTitle}
+                  </p>
                 )}
                 {showUploaderUsername && item.uploaderUsername && (
-                  <p className="mb-2 text-white">Uploaded by: {item.uploaderUsername}</p>
+                  <p className="mb-2 text-white text-sm sm:text-base">
+                    Hochgeladen von: {item.uploaderUsername}
+                  </p>
                 )}
                 {item.greetingText && (
-                  <p className="italic mb-2 text-white ">"{item.greetingText}"</p>
+                  <p className="italic mb-2 text-white text-sm sm:text-base">
+                    "{item.greetingText}"
+                  </p>
                 )}
               </div>
+              {/* Back Button */}
+              <button
+                onClick={closeModal}
+                className="absolute top-4 left-4 p-2 text-white text-2xl z-10"
+                style={{
+                  top: 'max(env(safe-area-inset-top), 1rem) ',
+                  left: 'max(env(safe-area-inset-left), 1rem)',
+                }}
+              >
+                <FaChevronLeft />
+              </button>
             </div>
           </div>
         ))}
       </div>
-
 
       {showUsernameModal && currentMedia && (
         <UsernameModal

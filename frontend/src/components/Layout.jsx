@@ -7,7 +7,7 @@ const Layout = ({ children }) => {
   return (
     <div className="relative flex flex-col min-h-screen">
       {/* Profile Dropdown - responsive placement */}
-      <div className="absolute top-4 right-4 sm:right-8">
+      <div className="absolute top-4 right-4 sm:right-8 z-50">
         <ProfileDropdown />
       </div>
 

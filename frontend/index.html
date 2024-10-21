@@ -4,6 +4,14 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>MeMoria</title>
+    <script>
+      (function() {
+        // Abrufen des bevorzugten Themas aus dem Local Storage
+        const preferredTheme = localStorage.getItem('preferredTheme') || 'default';
+        // Setzen des Themenattributs auf dem HTML-Element
+        document.documentElement.setAttribute('data-theme', preferredTheme);
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

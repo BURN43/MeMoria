@@ -7,6 +7,7 @@ import stripePromise from './Stripe/Stripe';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 
+
 import './styles/global.css';
 
 // Lazy load components
@@ -26,6 +27,7 @@ const AlbumWithToken = lazy(() => import('./pages/AlbumWithToken'));
 const PaketErweitern = lazy(() => import('./pages/PaketErweitern'));
 const PaymentSuccessPage = lazy(() => import('./pages/PaymentSuccessPage'));
 const PaymentCancelPage = lazy(() => import('./pages/PaymentCancelPage'));
+import ThemeLoader from './components/ThemeLoader'; 
 
 // Loading component
 const Loading = React.memo(() => <div>Loading...</div>);
@@ -82,6 +84,7 @@ function App() {
 
 	return (
 		<Elements stripe={stripePromise}>
+			<ThemeLoader /> {/* Add ThemeLoader component here */}
 			<div className='min-h-screen bg-dark flex items-center justify-center relative overflow-hidden'>
 				<Suspense fallback={<Loading />}>
 					{albumToken ? <GuestNavBar /> : isAuthenticated && <NavBar />}

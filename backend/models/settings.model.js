@@ -19,6 +19,7 @@ const settingsSchema = new mongoose.Schema({
   profilePic: { type: String, default: '' }, // New field for profile picture URL
 
 }, { timestamps: true });
-
+  settingsSchema.index({ theme: 1 });
+ 
 const Settings = mongoose.model('Settings', settingsSchema);
 export default Settings;

@@ -10,12 +10,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <title>Your App Title</title>
+        <title>MeMoria</title>
+        <meta charSet="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="MeMoria - Your moments, beautifully captured." />
       </head>
       <body>
         {children}
-        <Analytics />      {/* Integrates Vercel Analytics */}
-        <SpeedInsights />  {/* Integrates Vercel Speed Insights */}
+        <SpeedInsights />
+        <Analytics />
       </body>
     </html>
   );

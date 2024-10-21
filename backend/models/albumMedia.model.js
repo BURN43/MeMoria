@@ -12,7 +12,8 @@ const AlbumMediaSchema = new mongoose.Schema({
   uploaderName: { type: String },
   guestGreetingText: { type: String },
   challengeTitle: { type: String }, // New field for challenge title
-  uploaderUsername: { type: String } // New field for user's username
+  uploaderUsername: { type: String }, // New field for user's username
+  orientation: { type: Number, default: 1 },
 });
 
 const AlbumMedia = mongoose.model('AlbumMedia', AlbumMediaSchema);

@@ -1,12 +1,50 @@
-import React, { useState, useRef, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { motion, useAnimation } from 'framer-motion';
 import { FaPlus, FaEye, FaTrashAlt } from 'react-icons/fa';
+import EXIF from 'exif-js';
 
 const MediaItem = React.memo(({ mediaItem, isAdmin, openModal, onDelete }) => {
   const [showOptions, setShowOptions] = useState(false);
+  const [orientation, setOrientation] = useState(1);
   const controls = useAnimation();
   const touchStartY = useRef(0);
   const touchEndY = useRef(0);
+  const mediaRef = useRef(null);
+
+  useEffect(() => {
+    const loadImage = async () => {
+      if (mediaItem.mediaType === 'image') {
+        const img = new Image();
+        img.crossOrigin = "Anonymous";
+        img.onload = () => {
+          EXIF.getData(img, function() {
+            const exifOrientation = EXIF.getTag(this, "Orientation");
+            setOrientation(exifOrientation || 1);
+          });
+        };
+        img.src = mediaItem.thumbnailUrl || mediaItem.mediaUrl;
+      } else if (mediaItem.mediaType === 'video' && mediaRef.current) {
+        mediaRef.current.addEventListener('loadedmetadata', () => {
+          const { videoWidth, videoHeight } = mediaRef.current;
+          setOrientation(videoWidth > videoHeight ? 1 : 6);
+        });
+      }
+    };
+    loadImage();
+  }, [mediaItem]);
+
+  const getOrientationStyle = () => {
+    switch (orientation) {
+      case 2: return { transform: 'scaleX(-1)' };
+      case 3: return { transform: 'rotate(180deg)' };
+      case 4: return { transform: 'scaleY(-1)' };
+      case 5: return { transform: 'rotate(-90deg) scaleY(-1)' };
+      case 6: return { transform: 'rotate(90deg)' };
+      case 7: return { transform: 'rotate(90deg) scaleY(-1)' };
+      case 8: return { transform: 'rotate(-90deg)' };
+      default: return {};
+    }
+  };
 
   const handleDelete = useCallback((e) => {
     e.stopPropagation();
@@ -51,7 +89,11 @@ const MediaItem = React.memo(({ mediaItem, isAdmin, openModal, onDelete }) => {
       animate={controls}
     >
       {mediaItem.mediaType === 'video' ? (
-        <video className="w-full h-full object-cover">
+        <video 
+          ref={mediaRef}
+          className="w-full h-full object-cover"
+          style={getOrientationStyle()}
+        >
           <source src={mediaItem.thumbnailUrl || mediaItem.mediaUrl} type="video/mp4" />
         </video>
       ) : (
@@ -59,6 +101,7 @@ const MediaItem = React.memo(({ mediaItem, isAdmin, openModal, onDelete }) => {
           src={mediaItem.thumbnailUrl || mediaItem.mediaUrl}
           alt={mediaItem.title || 'Media'}
           className="object-cover w-full h-full"
+          style={getOrientationStyle()}
         />
       )}
 
@@ -102,13 +145,15 @@ const MediaGrid = ({
   const observerRef = useRef(null);
 
   const sortedMedia = useMemo(() => {
-    return [...media].sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
+    return [...new Set(media.map(item => item._id || item.id))]
+      .map(id => media.find(item => (item._id || item.id) === id))
+      .sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
   }, [media]);
 
-  const handleFileChange = useCallback((e) => {
+  const handleFileChange = useCallback(async (e) => {
     if (e.target.files.length > 0) {
       const file = e.target.files[0];
-      handleFileUpload(file);
+      await handleFileUpload(file);
       e.target.value = '';
     }
   }, [handleFileUpload]);
@@ -161,7 +206,7 @@ const MediaGrid = ({
     setItemsToShow((prev) => prev + 6);
   }, []);
 
- return (
+  return (
     <div className="flex flex-col w-full mt-2 h-fit xl:p-2">
       <div className="grid grid-cols-3 gap-1 sm:gap-1.5 md:grid-cols-6 lg:grid-cols-8 h-fit">
         {canUpload && (

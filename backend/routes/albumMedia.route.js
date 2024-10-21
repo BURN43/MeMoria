@@ -20,12 +20,12 @@ const s3Client = new S3Client({
 });
 
 // Helper function to upload file to S3
-async function uploadToS3(file, key) {
+async function uploadToS3(file, key, contentType) {
   const uploadParams = {
     Bucket: process.env.AWS_S3_BUCKET,
     Key: key,
     Body: file,
-    ContentType: file.mimetype,
+    ContentType: contentType,
   };
   await s3Client.send(new PutObjectCommand(uploadParams));
   return `https://${process.env.AWS_S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
@@ -47,18 +47,27 @@ async function processUploadRequest(req, res, userId, albumId, challengeTitle, u
   const fileKey = `${userId}/${albumId}/${uniqueFileName}`;
   try {
     // Upload original file
-    const mediaUrl = await uploadToS3(mediaFile.data, fileKey);
+    const mediaUrl = await uploadToS3(mediaFile.data, fileKey, mediaFile.mimetype);
     let thumbnailUrl = null;
+    let orientation = 1;
+
     if (mediaFile.mimetype.startsWith('image')) {
       // Generate thumbnail for images
-      const thumbnailBuffer = await sharp(mediaFile.data)
+      const sharpImage = sharp(mediaFile.data);
+      const metadata = await sharpImage.metadata();
+      orientation = metadata.orientation || 1;
+
+      const thumbnailBuffer = await sharpImage
+        .rotate() // This will auto-rotate based on EXIF orientation
         .resize(200, 200, { fit: 'cover' })
         .toBuffer();
+
       const thumbnailKey = `${userId}/${albumId}/thumbnails/${uniqueFileName}`;
-      thumbnailUrl = await uploadToS3(thumbnailBuffer, thumbnailKey);
+      thumbnailUrl = await uploadToS3(thumbnailBuffer, thumbnailKey, 'image/jpeg');
     } else if (mediaFile.mimetype.startsWith('video')) {
       thumbnailUrl = mediaUrl;
     }
+
     const newMedia = await AlbumMedia.create({
       mediaUrl,
       thumbnailUrl,
@@ -66,7 +75,8 @@ async function processUploadRequest(req, res, userId, albumId, challengeTitle, u
       albumId,
       userId,
       challengeTitle,
-      uploaderUsername
+      uploaderUsername,
+      orientation
     });
 
     // Emit WebSocket event for new media
@@ -77,7 +87,8 @@ async function processUploadRequest(req, res, userId, albumId, challengeTitle, u
       mediaUrl,
       thumbnailUrl,
       challengeTitle,
-      uploaderUsername
+      uploaderUsername,
+      orientation
     });
 
     res.status(201).json({ 
@@ -86,7 +97,8 @@ async function processUploadRequest(req, res, userId, albumId, challengeTitle, u
       albumId, 
       _id: newMedia._id,
       challengeTitle,
-      uploaderUsername
+      uploaderUsername,
+      orientation
     });
   } catch (err) {
     console.error('Error processing upload:', err);
@@ -152,7 +164,7 @@ router.get('/media/:albumId', authMiddleware, async (req, res) => {
         .sort({ uploadedAt: -1 })
         .skip(skip)
         .limit(limit)
-        .select('mediaUrl thumbnailUrl mediaType albumId userId challengeTitle uploaderUsername uploadedAt')
+        .select('mediaUrl thumbnailUrl mediaType albumId userId challengeTitle uploaderUsername uploadedAt orientation')
         .lean(),
       AlbumMedia.countDocuments(query)
     ]);
@@ -227,6 +239,5 @@ router.delete('/media/:id', authMiddleware, requireRole('admin'), async (req, re
     res.status(500).json({ error: 'Error deleting media', details: error.message });
   }
 });
-
 
 export default router;

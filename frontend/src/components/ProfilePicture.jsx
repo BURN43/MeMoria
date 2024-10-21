@@ -7,7 +7,6 @@ import io from 'socket.io-client';
 const API_URL = import.meta.env.MODE === 'development'
   ? import.meta.env.VITE_API_URL_BASE_WITH_API_DEV
   : import.meta.env.VITE_API_URL_BASE_WITH_API_PROD;
-console.log("API URL:", API_URL);
 
 
 // Inline Spinner component
