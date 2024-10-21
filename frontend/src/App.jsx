@@ -8,6 +8,7 @@ import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 
 
+
 import './styles/global.css';
 
 // Lazy load components
@@ -84,7 +85,7 @@ function App() {
 
 	return (
 		<Elements stripe={stripePromise}>
-			<ThemeLoader /> {/* Add ThemeLoader component here */}
+			<ThemeLoader />
 			<div className='min-h-screen bg-dark flex items-center justify-center relative overflow-hidden'>
 				<Suspense fallback={<Loading />}>
 					{albumToken ? <GuestNavBar /> : isAuthenticated && <NavBar />}

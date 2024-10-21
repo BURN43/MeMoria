@@ -11,7 +11,7 @@ const ThemeLoader = () => {
     const fetchTheme = async () => {
       try {
         // Fetch theme settings from the server
-        const response = await axios.get(`${API_URL}/api/settings`, {
+        const response = await axios.get(`${API_URL}/settings`, {
           withCredentials: true // Include credentials if necessary
         });
 
